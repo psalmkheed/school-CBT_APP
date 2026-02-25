@@ -1,0 +1,386 @@
+@import "tailwindcss";
+
+/* Sidebar mobile open state — !important overrides Tailwind's -translate-x-full */
+.sidebar-open {
+    transform: translateX(0) !important;
+    translate: none !important;
+}
+
+/* Boxicons uses [class^="bx"] (attribute selector) which beats Tailwind's .hidden
+   (single class selector) in specificity. Force hidden to work on bx icons. */
+[class^="bx"].hidden,
+[class*=" bx"].hidden {
+    display: none !important;
+}
+
+/* Disable browser default pull-to-refresh to favor our custom one */
+html, body {
+    overscroll-behavior-y: contain;
+}
+
+/* Fix for FAB (Floating Action Button) shadow display */
+.bg-green-600 { --tw-shadow-color: rgba(22, 163, 74, 0.2); }
+.bg-sky-600 { --tw-shadow-color: rgba(2, 132, 199, 0.2); }
+.bg-blue-600 { --tw-shadow-color: rgba(37, 99, 235, 0.2); }
+
+@media (min-width: 768px) {
+    [class^="bx"].md\:block,
+    [class*=" bx"].md\:block {
+        display: inline-block !important;
+    }
+}
+
+
+::-webkit-scrollbar {
+      width: 2px;
+}
+
+::-webkit-scrollbar-thumb {
+      width: 2px;
+}
+
+.sidebar .li {
+      @apply rounded-md;
+}
+
+.sidebar li {
+      @apply px-5 py-3 cursor-pointer text-gray-500;
+}
+
+
+/* sidebar hover style */
+.user-admin .sidebar .li:hover {
+      @apply border border-green-200 bg-linear-to-r from-green-100 to-green-200;
+}
+
+.user-admin .sidebar .li:hover .side-icon {
+      @apply text-transparent bg-linear-to-b from-green-700 via-green-500 to-orange-500 bg-clip-text;
+}
+
+.user-staff .sidebar .li:hover, .user-student .sidebar .li:hover {
+      @apply border border-blue-200 bg-linear-to-r from-blue-100 to-blue-200;
+}
+
+.user-staff .sidebar .li:hover .side-icon, .user-student .sidebar .li:hover .side-icon {
+      @apply text-transparent bg-linear-to-b from-blue-700 via-blue-500 to-indigo-500 bg-clip-text;
+}
+
+/* Top Nav dropdown menu */
+.drop-down li {
+      @apply md:px-5 px-2 py-3 cursor-pointer text-gray-800;
+}
+
+/* dropdown hover */
+.user-admin .drop-down li:hover {
+      @apply bg-linear-to-r from-green-100 to-green-200 text-green-600;
+}
+
+.user-staff .drop-down li:hover, .user-student .drop-down li:hover {
+      @apply bg-linear-to-r from-blue-100 to-blue-200 text-blue-600;
+}
+
+/* active list style */
+.user-admin .li.active {
+      @apply border border-green-200 bg-linear-to-r from-green-100 to-green-200;
+}
+
+.user-staff .li.active, .user-student .li.active {
+      @apply border border-blue-200 bg-linear-to-r from-blue-100 to-blue-200;
+}
+
+/* admin active state icon */
+.user-admin .li.active i {
+      @apply text-transparent bg-linear-to-b from-green-700 via-green-500 to-orange-500 bg-clip-text;
+}
+
+/* staff/student active state icon */
+.user-staff .li.active i, .user-student .li.active i {
+      @apply text-transparent bg-linear-to-b from-blue-700 via-blue-500 to-indigo-500 bg-clip-text;
+}
+
+/* Fallback active state */
+.active i {
+      @apply text-transparent bg-linear-to-b from-green-700 via-green-500 to-orange-500 bg-clip-text;
+}
+
+
+
+.swiper {
+      width: 300px;
+      height: 100px;
+}
+
+
+.swiper-slide {
+      @apply rounded-md;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+}
+
+.swiper-wrapper {
+      @apply rounded-md;
+}
+
+
+/* fadeIn effect */
+
+.fadeIn {
+      animation: fadeIn 0.3s ease-out forwards;
+}
+
+.fadeOut {
+      animation: fadeOut 0.3s ease-out forwards;
+}
+
+@keyframes fadeIn {
+      from {
+            opacity: 0;
+            transform: scale(0.95);
+      }
+
+      to {
+            opacity: 1;
+            transform: scale(1);
+      }
+}
+
+@keyframes fadeOut {
+      from {
+            opacity: 1;
+            transform: scale(1);
+      }
+
+      to {
+            opacity: 0;
+            transform: scale(0.95);
+      }
+}
+
+.fade-in-left {
+      animation: fade-in-left 0.6s ease-in-out;
+}
+
+@keyframes fade-in-left {
+      from {
+            opacity: 0;
+            transform: translateX(10px)
+      }
+
+      to {
+            opacity: 1;
+            transform: translateX(0)
+      }
+}
+.fade-in-bottom {
+      animation: fade-in-bottom 0.6s ease-in-out;
+}
+
+@keyframes fade-in-bottom {
+      from {
+            opacity: 0;
+            transform: translateY(10px)
+      }
+
+      to {
+            opacity: 1;
+            transform: translateY(0)
+      }
+}
+
+header.masthead {
+      position: relative;
+      margin-bottom: 2rem;
+      padding-top: calc(8rem + 57px);
+      padding-bottom: 8rem;
+      background: no-repeat center center;
+      background-color: #6c757d;
+      background-size: cover;
+      background-attachment: scroll;
+}
+
+header.masthead:after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #212529;
+      opacity: 0.9;
+}
+
+
+.ck-editor__editable_inline {
+      min-height: 400px;
+      max-height: 600px;
+      width: 100%;
+      box-sizing: border-box;
+}
+
+/* Bottom Sheet Animations */
+@keyframes slide-up {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+}
+
+@keyframes slide-down {
+      from { transform: translateY(0); }
+      to { transform: translateY(100%); }
+}
+
+.slide-up {
+      animation: slide-up 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.slide-down {
+      animation: slide-down 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ── Dropdown Overlay ─────────────────────────────────── */
+#dropdownOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 190;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+}
+#dropdownOverlay.active {
+      opacity: 1;
+      pointer-events: auto;
+}
+
+/* ── Dropdown Panel ───────────────────────────────────── */
+/* Base: hidden. JS toggles display. */
+#dropDownItems {
+      display: none;
+}
+
+/* Mobile: panel slides up from bottom */
+@media (max-width: 767px) {
+      #dropDownItems {
+            /* When shown via jQuery .show(), override to flex for bottom-sheet layout */
+            position: fixed !important;
+            bottom: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            top: auto !important;
+            width: 100% !important;
+            z-index: 200;
+      }
+      #dropDownItems > div {
+            border-radius: 24px 24px 0 0;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: slide-up 0.35s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+      }
+}
+
+/* Desktop: small dropdown card */
+@media (min-width: 768px) {
+      #dropDownItems {
+            position: absolute;
+            bottom: auto;
+            top: 64px;
+            right: 0;
+            left: auto;
+            width: 288px; /* 72 * 4px */
+      }
+      #dropDownItems > div {
+            border-radius: 16px;
+            animation: none;
+      }
+}
+
+/* ── Pull to Refresh ──────────────────────────────────── */
+#ptr-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(8px);
+      transition: height 0.1s ease-out;
+}
+
+#ptr-loader {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: scale(0);
+      transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#ptr-loader i {
+      font-size: 20px;
+      color: #3b82f6; /* Blue-500 */
+}
+
+.ptr-spinning {
+      animation: ptr-spin 1s linear infinite;
+}
+
+@keyframes ptr-spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+}
+
+.ptr-success i {
+      color: #10b981 !important; /* Green-500 */
+}
+
+/* ── Skeleton Loaders ────────────────────────────────── */
+.skeleton {
+      @apply bg-gray-200 overflow-hidden relative;
+}
+
+.skeleton::after {
+      content: "";
+      @apply absolute inset-0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      animation: skeleton-shimmer 1.5s infinite;
+}
+
+@keyframes skeleton-shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+}
+
+.skeleton-pulse {
+      animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+}
+
+.skeleton-text {
+      @apply h-4 rounded-md w-full;
+}
+
+.skeleton-title {
+      @apply h-8 rounded-lg w-3/4;
+}
+
+.skeleton-avatar {
+      @apply w-12 h-12 rounded-full;
+}
+
+.skeleton-card {
+      @apply bg-white rounded-2xl border border-gray-100 p-5;
+}

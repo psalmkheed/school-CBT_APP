@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Mark as Read</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-box {
+            border: 2px solid #ccc;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #3b82f6;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .success {
+            background: #d1fae5;
+            border: 1px solid #10b981;
+            color: #065f46;
+        }
+        .error {
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Mark as Read Endpoint</h1>
+    
+    <div class="test-box">
+        <h3>Test the mark_read.php endpoint</h3>
+        <p>Enter a notification ID to test:</p>
+        <input type="number" id="notificationId" placeholder="Enter notification ID" value="1" style="padding: 8px; width: 200px;">
+        <br><br>
+        <button onclick="testMarkRead()">Test Mark as Read</button>
+    </div>
+
+    <div id="result"></div>
+
+    <div class="test-box">
+        <h3>Console Output</h3>
+        <div id="console" style="background: #f3f4f6; padding: 10px; border-radius: 5px; font-family: monospace; font-size: 12px; max-height: 300px; overflow-y: auto;">
+            Waiting for test...
+        </div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const consoleDiv = document.getElementById('console');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? 'red' : type === 'success' ? 'green' : 'black';
+            consoleDiv.innerHTML += `<div style="color: ${color};">[${timestamp}] ${message}</div>`;
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        function testMarkRead() {
+            const id = document.getElementById('notificationId').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!id) {
+                alert('Please enter a notification ID');
+                return;
+            }
+
+            log(`Testing mark_read.php with ID: ${id}`);
+            log(`URL: /school_app/admin/auth/mark_read.php`);
+            log(`Method: POST`);
+            log(`Body: id=${id}`);
+
+            resultDiv.style.display = 'none';
+
+            fetch('/school_app/admin/auth/mark_read.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'id=' + encodeURIComponent(id)
+            })
+            .then(response => {
+                log(`Response status: ${response.status}`, response.ok ? 'success' : 'error');
+                log(`Response headers: ${JSON.stringify([...response.headers])}`);
+                return response.text();
+            })
+            .then(text => {
+                log(`Raw response: ${text}`);
+                
+                try {
+                    const data = JSON.parse(text);
+                    log(`Parsed JSON: ${JSON.stringify(data, null, 2)}`, data.status === 'success' ? 'success' : 'error');
+                    
+                    resultDiv.style.display = 'block';
+                    if (data.status === 'success') {
+                        resultDiv.className = 'success';
+                        resultDiv.innerHTML = '<strong>✅ Success!</strong><br>Notification marked as read.';
+                    } else {
+                        resultDiv.className = 'error';
+                        resultDiv.innerHTML = '<strong>❌ Error:</strong><br>' + (data.message || 'Unknown error');
+                    }
+                } catch (e) {
+                    log(`JSON parse error: ${e.message}`, 'error');
+                    resultDiv.style.display = 'block';
+                    resultDiv.className = 'error';
+                    resultDiv.innerHTML = '<strong>❌ Invalid JSON Response:</strong><br>' + text;
+                }
+            })
+            .catch(error => {
+                log(`Fetch error: ${error.message}`, 'error');
+                resultDiv.style.display = 'block';
+                resultDiv.className = 'error';
+                resultDiv.innerHTML = '<strong>❌ Network Error:</strong><br>' + error.message;
+            });
+        }
+
+        // Clear console on load
+        document.getElementById('console').innerHTML = 'Ready to test...<br>';
+    </script>
+</body>
+</html>

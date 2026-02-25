@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Click Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .test-button {
+            background: #3b82f6;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        #log {
+            background: #f3f4f6;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .mark-read-btn {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Click Event Debug Test</h1>
+    
+    <div style="background: #fef3c7; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3>Test 1: Regular Button</h3>
+        <button class="test-button" onclick="log('Regular button clicked!')">Click Me (Regular)</button>
+    </div>
+
+    <div style="background: #dbeafe; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3>Test 2: Mark as Read Button (Same class as your app)</h3>
+        <button class="mark-read-btn" data-id="999">Mark as Read (Test)</button>
+    </div>
+
+    <div style="background: #fecaca; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3>Test 3: jQuery Check</h3>
+        <button class="test-button" onclick="checkJQuery()">Check if jQuery is Loaded</button>
+    </div>
+
+    <div id="log">
+        <strong>Event Log:</strong><br>
+        Waiting for events...
+    </div>
+
+    <!-- Load jQuery from your app -->
+    <script src="/school_app/src/jquery.js"></script>
+    
+    <!-- Load your scripts.js -->
+    <script src="/school_app/src/scripts.js"></script>
+
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logDiv.innerHTML += `<br>[${timestamp}] ${message}`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function checkJQuery() {
+            if (typeof jQuery !== 'undefined') {
+                log('✅ jQuery is loaded! Version: ' + jQuery.fn.jquery);
+            } else {
+                log('❌ jQuery is NOT loaded!');
+            }
+        }
+
+        // Test if the mark-read-btn handler from scripts.js is working
+        $(document).ready(function() {
+            log('✅ Document ready fired');
+            log('✅ jQuery version: ' + $.fn.jquery);
+            
+            // Check if the handler is attached
+            setTimeout(function() {
+                log('Checking for .mark-read-btn click handler...');
+                log('Try clicking the "Mark as Read (Test)" button above');
+            }, 500);
+        });
+
+        // Also add a direct listener to see if ANY click is detected
+        $(document).on('click', '.mark-read-btn', function() {
+            log('🎯 DIRECT HANDLER: .mark-read-btn was clicked! ID: ' + $(this).data('id'));
+        });
+    </script>
+</body>
+</html>
