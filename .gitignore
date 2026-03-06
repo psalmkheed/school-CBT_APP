@@ -33,4 +33,42 @@ logs
 *.log
 npm-debug.log*
 yarn-debug.log*
+
+# Database & Storage
+*.sql
+*.sqlite
+attachments/
+
+# Generated Artifacts
+*.pdf
+public/storage/
+storage/*.key
+
+# Scratch/Temporary Files
+animation.html
+test.html
+db_dump.txt
+CODE_IMPROVEMENTS.md
+
+# Application Dependencies (Crucial to ignore)
+vendor/
+waec/
 yarn-error.log*
+
+# Secrets & API keys (NEVER commit these)
+.env
+token.txt
+*.key
+
+# Temp/debug scripts
+tmp/
+tmp*.php
+tesiting.php
+migrate_logs.php
+
+# Uploads (user-generated content)
+uploads/
+
+# Large data files
+waec_questions.json
+questions\ bank.csv

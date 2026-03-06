@@ -1,7 +1,4 @@
-/**
- * This configuration was generated using the CKEditor 5 Builder. You can modify it anytime using this link:
- * https://ckeditor.com/ckeditor-5/builder/#installation/NoNgNARATAdAjABhgikCsUogOwBY0DMAHNlAJwG4GK5ybYJwEhHlmkhNGFEsqQBTAHaoEYYHDCTpUqQF1IuInCIATAMYAjCHKA==
- */
+console.log('CKEditor Module Loaded: Initializing...');
 
 import {
 	ClassicEditor,
@@ -58,6 +55,10 @@ import {
 	SimpleUploadAdapter
 } from 'ckeditor5';
 
+console.log('CKEditor Module: Imports successful');
+// Expose globally for other scripts (like modals) to use
+window.ClassicEditor = ClassicEditor;
+console.log('CKEditor Module: ClassicEditor exposed');
 
 const LICENSE_KEY = 'GPL';
 
@@ -314,6 +315,9 @@ const editorConfig = {
 		uploadUrl: '/school_app/admin/auth/upload_blog_image.php'
 	},
 };
+
+window.editorConfig = editorConfig;
+console.log('CKEditor Module: editorConfig exposed');
 
 window.initBlogEditor = async function () {
 	// Properly await destruction before creating a new instance

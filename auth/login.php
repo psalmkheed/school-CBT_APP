@@ -36,7 +36,7 @@ if (isset($_SESSION['user_id']) && $_SESSION['role'] == 'admin') {
 // App developer credit
 // ------------------------------------------------------------------------ //
 
-$dev_name = '<p class="absolute bottom-0 left-0 right-0 text-center text-sm text-gray-700 mb-2">' . date('Y') . "&copy; App Developed by <a href='mailto:[psalmkheed123@gmail.com]'>@BlaqDev</a> </p>";
+$dev_name = '<p class="absolute bottom-0 left-0 right-0 text-center text-sm text-gray-700 md:mt-8">' . date('Y') . "&copy; App Developed by <a href='mailto:[psalmkheed123@gmail.com]'>@BlaqDev</a> </p>";
 
 // -------------------------------------------------------------------------//
 ?>
@@ -46,8 +46,8 @@ $dev_name = '<p class="absolute bottom-0 left-0 right-0 text-center text-sm text
 
 <head>
       <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>CBT Portal - Login</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+      <title><?= strtoupper(explode(' ', $result->school_name)[0]) ?> CBT Portal - Login</title>
       <link rel="manifest" href="/school_app/manifest.php">
       <meta name="theme-color" content="<?= $result->school_primary ?>">
        <meta name="mobile-web-app-capable" content="yes">
@@ -58,12 +58,77 @@ $dev_name = '<p class="absolute bottom-0 left-0 right-0 text-center text-sm text
       <link href="../src/input.css" rel="stylesheet">
       <link href="../src/boxicons.css" rel="stylesheet">
       <script src="../src/jquery.js"></script>
+      <script>
+            // Early SW registration for PWA installability
+            if ('serviceWorker' in navigator) {
+                  navigator.serviceWorker.register('/school_app/sw.js')
+                        .catch(function(err){ console.warn('SW:', err); });
+            }
+            // Fullscreen API: hide address bar on first tap (browser-only fallback)
+            (function(){
+                  var installed = window.matchMedia('(display-mode: fullscreen)').matches ||
+                                  window.matchMedia('(display-mode: standalone)').matches ||
+                                  !!navigator.standalone;
+                  if (!installed) {
+                        function goFull() {
+                              var d = document.documentElement;
+                              if (d.requestFullscreen)            d.requestFullscreen();
+                              else if (d.webkitRequestFullscreen) d.webkitRequestFullscreen();
+                        }
+                        document.addEventListener('touchstart', goFull, {once:true});
+                        document.addEventListener('click',      goFull, {once:true});
+                  }
+            })();
+      </script>
+      <style>
+            /* ── PWA Install Banner ─────────────────────────────────── */
+            #install-banner {
+                  position: fixed;
+                  bottom: 16px; left: 16px; right: 16px;
+                  background: #1a1a1a;
+                  background: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+                  color: white;
+                  padding: 16px;
+                  border-radius: 18px;
+                  display: none; /* Shown by JS */
+                  align-items: center;
+                  gap: 14px;
+                  z-index: 10000;
+                  box-shadow: 0 12px 30px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.08);
+                  transform: translateY(120%);
+                  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                  font-family: 'Outfit', sans-serif;
+            }
+            #install-banner.visible { transform: translateY(0); }
+            .install-icon {
+                  width: 44px; height: 44px;
+                  background: rgba(255,255,255,0.1);
+                  border-radius: 12px;
+                  display: flex; align-items: center; justify-content: center;
+                  font-size: 22px;
+            }
+            .install-text { flex: 1; }
+            .install-text strong { display: block; filter: brightness(1.2); font-size: 14px; }
+            .install-text small { color: rgba(255,255,255,0.6); font-size: 11px; }
+            .install-btn {
+                  background: white; color: black;
+                  border: none; border-radius: 10px;
+                  padding: 8px 16px; font-weight: 700; font-size: 12px;
+                  cursor: pointer; transition: transform 0.2s;
+            }
+            .install-btn:active { transform: scale(0.95); }
+            .install-close {
+                  position: absolute; top: 6px; right: 8px;
+                  background: none; border: none; color: rgba(255,255,255,0.4);
+                  font-size: 18px; cursor: pointer;
+            }
+      </style>
 </head>
 
 <body
-      class="bg-green-100 text-gray-800 dark:bg-gray-900 dark:text-gray-500 min-h-screen w-ful flex items-center justify-center select-none">
+      class="bg-green-100 text-gray-800 dark:bg-gray-900 dark:text-gray-500 min-h-screen w-full flex items-center justify-center select-none">
 
-      <div class="fadeIn md:w-[70%] w-[90%] bg-white flex justify-center shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-3xl overflow-hidden">
+      <div class="fadeIn md:w-[70%] w-[90%] bg-white flex justify-center shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-3xl overflow-hidden md:mb-4">
 
             <!-- left Div -->
             <div
@@ -74,7 +139,7 @@ $dev_name = '<p class="absolute bottom-0 left-0 right-0 text-center text-sm text
                                     class="size-12 border-2 border-white/20 rounded-xl object-contain select-none shadow-sm" />
                               <div>
                                     <h3 class="text-2xl font-black leading-tight"><?= strtoupper(explode(' ', $result->school_name)[0]) ?></h3>
-                                    <p class="text-[10px] font-bold uppercase tracking-widest text-green-100">Official Portal</p>
+                                    <p class="text-[10px] font-semibold uppercase tracking-widest text-green-100"><?= $result->school_tagline ?></p>
                               </div>
                         </div>
 
@@ -89,7 +154,7 @@ $dev_name = '<p class="absolute bottom-0 left-0 right-0 text-center text-sm text
             <!-- right Div -->
             <div class="bg-white md:w-[50%] w-full h-full">
                   <form id="loginForm"
-                        class="p-8 md:p-10 h-full flex flex-col justify-center border-l border-gray-50">
+                        class="p-8 md:p-10 md:pt-8 h-full flex flex-col justify-center border-l border-gray-50">
                         
                         <!-- Mobile Only Logo -->
                         <div class="md:hidden flex flex-col items-center mb-8">
@@ -136,7 +201,7 @@ $dev_name = '<p class="absolute bottom-0 left-0 right-0 text-center text-sm text
                         </button>
 
                         <div class="mt-8 pt-6 border-t border-gray-50 text-center">
-                              <p class="text-xs font-bold text-gray-400 uppercase tracking-tighter">Help & Support</p>
+                              <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Help & Support</p>
                               <p class="text-sm text-gray-500 mt-2">Forgot Password? Contact the administrator</p>
                         </div>
 
@@ -144,18 +209,12 @@ $dev_name = '<p class="absolute bottom-0 left-0 right-0 text-center text-sm text
             </div>
 
       </div>
-      <!-- developer name -->
-      <?= $dev_name ?>
 
 </body>
 <script src="../src/scripts.js"></script>
 
 
 <script>
-      // show toast alertBox
-
-
-
 
       // Login AJAX
       $("#loginForm").on("submit", function (e) {
@@ -229,5 +288,82 @@ $dev_name = '<p class="absolute bottom-0 left-0 right-0 text-center text-sm text
             });
       });
 </script>
+
+      <!-- PWA Install Banner -->
+      <div id="install-banner">
+            <div class="install-icon">📲</div>
+            <div class="install-text">
+                  <strong>Use the Web App</strong>
+                  <small>Add to Home Screen for fullscreen view</small>
+            </div>
+            <button class="install-btn" id="installBtn">Install</button>
+            <button class="install-close" id="installClose">&times;</button>
+      </div>
+
+      <script>
+            // PWA Install Logic for Login Page
+            (function() {
+                  let deferredPrompt = null;
+                  const banner = document.getElementById('install-banner');
+                  const installBtn = document.getElementById('installBtn');
+                  const closeBtn = document.getElementById('installClose');
+
+                  const isInstalled = window.matchMedia('(display-mode: fullscreen)').matches ||
+                                      window.matchMedia('(display-mode: standalone)').matches ||
+                                      !!navigator.standalone;
+                  
+                  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 0);
+                  const dismissed = sessionStorage.getItem('install-banner-dismissed');
+
+                  if (!isInstalled && !dismissed) {
+                        // Wait 3 seconds then show
+                        setTimeout(showBanner, 3000);
+
+                        window.addEventListener('beforeinstallprompt', (e) => {
+                              e.preventDefault();
+                              deferredPrompt = e;
+                              if (installBtn) installBtn.textContent = 'Install Now';
+                        });
+
+                        const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+                        const isInSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+                        if (installBtn) {
+                              installBtn.addEventListener('click', async () => {
+                                    if (deferredPrompt) {
+                                          deferredPrompt.prompt();
+                                          const { outcome } = await deferredPrompt.userChoice;
+                                          if (outcome === 'accepted') hideBanner();
+                                          deferredPrompt = null;
+                                    } else if (isIOS && isInSafari) {
+                                          alert('Tap the Share button (□↑) at the bottom, then "Add to Home Screen".');
+                                    } else {
+                                          alert('To hide the browser UI:\n1. Open browser menu (⋮).\n2. Tap "Install app" or "Add to Home Screen".');
+                                    }
+                              });
+                        }
+                  }
+
+                  function showBanner() {
+                        if (!banner) return;
+                        banner.style.display = 'flex';
+                        setTimeout(() => banner.classList.add('visible'), 50);
+                  }
+
+                  function hideBanner() {
+                        if (!banner) return;
+                        banner.classList.remove('visible');
+                        setTimeout(() => banner.style.display = 'none', 400);
+                  }
+
+                  if (closeBtn) {
+                        closeBtn.addEventListener('click', () => {
+                              sessionStorage.setItem('install-banner-dismissed', '1');
+                              hideBanner();
+                        });
+                  }
+            })();
+      </script>
+</body>
 
 </html>

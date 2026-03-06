@@ -13,7 +13,8 @@ $check_config = $conn->prepare('SELECT * FROM school_config');
 $check_config->execute();
 
 if ($check_config->rowCount() > 0) {
-      header("Location: /school_app/auth/login.php");
+      header("Location: /school_app/auth/splash.php");
+      exit();
 }
 ;
 // -------------------------------------------------------------//

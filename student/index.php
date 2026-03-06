@@ -20,6 +20,9 @@ if ($user->role !== 'student') {
       exit();
 }
 
+$userClass = strtoupper(trim($_SESSION['class'] ?? $user->class ?? ''));
+$isSenior = (strpos($userClass, 'SS') !== false && strpos($userClass, 'JSS') === false) || (strpos($userClass, 'SSS') !== false);
+
 $stmt = $conn->prepare("
     SELECT * FROM broadcast
     WHERE recipient = :recipient
@@ -71,7 +74,7 @@ $unread_messages = (int) $unread_stmt->fetchColumn();
                               <p class="text-blue-100 text-sm font-medium mb-1">
                                     <?= date('l, F j, Y') ?>
                               </p>
-                              <h3 class="text-2xl md:text-3xl font-bold text-white mb-1">
+                              <h3 class="text-2xl md:text-3xl font-semibold text-white mb-1">
                                     Hey, <?= ucfirst($user->first_name) ?> 👋
                               </h3>
                               <p class="text-blue-100 text-sm">
@@ -81,31 +84,48 @@ $unread_messages = (int) $unread_stmt->fetchColumn();
                   </div>
 
                   <!-- Quick Action Cards -->
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
-
-                        <!-- Practice Past Questions Card -->
-                        <div class="ajax-card bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4 group hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
-                              data-url="../pages/test.php">
-                              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center shadow-lg shadow-orange-200 flex-shrink-0">
-                                    <i class="bx-book-bookmark text-2xl text-white"></i>
-                              </div>
-                              <div>
-                                    <h3 class="text-base font-bold text-gray-800 group-hover:text-orange-600 transition">Practice Past Questions</h3>
-                                    <p class="text-xs text-gray-400 mt-0.5">Practice questions from previous years</p>
-                              </div>
-                        </div>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
 
                         <!-- Take Exam Card -->
-                        <div class="ajax-card bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4 group hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
+                        <div class="ajax-card bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex items-center gap-4 group hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
                               data-url="../pages/exam.php">
                               <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center shadow-lg shadow-green-200 flex-shrink-0">
                                     <i class="bx-pencil text-2xl text-white"></i>
                               </div>
                               <div>
-                                    <h3 class="text-base font-bold text-gray-800 group-hover:text-green-600 transition">Take Exam</h3>
-                                    <p class="text-xs text-gray-400 mt-0.5">Start an exam when you're ready</p>
+                                    <h3 class="text-base font-semibold text-gray-800 group-hover:text-green-600 transition">Take Exam</h3>
+                                    <p class="text-[11px] text-gray-400 mt-0.5 font-medium">Start an exam when you're ready</p>
                               </div>
                         </div>
+
+                        <!-- Exam History Card -->
+                        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex items-center gap-4 group hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
+                              onclick="const base = '<?= APP_URL ?>'; window.loadPage(base + 'student/pages/exam_history.php')">
+                              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-200 flex-shrink-0">
+                                    <i class="bx-history text-2xl text-white"></i>
+                              </div>
+                              <div>
+                                    <h3 class="text-base font-semibold text-gray-800 group-hover:text-blue-600 transition">Exam History</h3>
+                                    <p class="text-[11px] text-gray-400 mt-0.5 font-medium">Review your past scores & performance</p>
+                              </div>
+                        </div>
+
+                        <!-- Practice Past Questions Card -->
+                        <?php if ($isSenior): ?>
+                        <div onclick="window.loadPage('/school_app/student/pages/waec_practice.php')"
+                              class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex items-center gap-4 group hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 cursor-pointer">
+                              <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center shadow-lg shadow-indigo-200 flex-shrink-0">
+                                    <i class="bx-book-bookmark text-2xl text-white"></i>
+                              </div>
+                              <div class="flex-1">
+                                    <div class="flex items-center justify-between mb-0.5">
+                                          <h3 class="text-base font-semibold text-gray-800 group-hover:text-indigo-600 transition">WAEC Practice</h3>
+                                          <i class="bx bx-chevron-right text-gray-300 group-hover:text-indigo-400 group-hover:translate-x-1 transition-all"></i>
+                                    </div>
+                                    <p class="text-[11px] text-gray-400 font-medium">Standard past questions for SS1-SS3</p>
+                              </div>
+                        </div>
+                        <?php endif; ?>
                   </div>
 
                   <!-- Quick Actions Row -->
@@ -119,20 +139,30 @@ $unread_messages = (int) $unread_stmt->fetchColumn();
                                     </div>
                                     <span class="text-xs font-semibold text-gray-600">Chat</span>
                               </button>
-                              <button onclick="$('#sideTest').click()"
+                              <button onclick="openSupportModal()"
                                     class="bg-white border border-gray-100 rounded-xl p-4 flex flex-col items-center gap-2 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group">
-                                    <div class="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition">
-                                          <i class="bx-book-open text-lg text-orange-600"></i>
+                                    <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition">
+                                          <i class="bx bx-headphone-mic text-lg text-emerald-600"></i>
                                     </div>
-                                    <span class="text-xs font-semibold text-gray-600">Test</span>
+                                    <span class="text-xs font-semibold text-gray-600">Admin Support</span>
                               </button>
-                              <button onclick="$('#sideStudy').click()"
+                              <?php if ($isSenior): ?>
+                              <button onclick="window.loadPage('/school_app/student/pages/waec_practice.php')"
+                                    class="bg-white border border-gray-100 rounded-xl p-4 flex flex-col items-center gap-2 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group">
+                                    <div class="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition">
+                                          <i class="bx-book-open text-lg text-indigo-600"></i>
+                                    </div>
+                                    <span class="text-xs font-semibold text-gray-600">Practice</span>
+                              </button>
+                              <?php else: ?>
+                              <button onclick="$('#sideExamHistory').click()"
                                     class="bg-white border border-gray-100 rounded-xl p-4 flex flex-col items-center gap-2 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group">
                                     <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition">
-                                          <i class="bx-book-library text-lg text-green-600"></i>
+                                          <i class="bx-history text-lg text-green-600"></i>
                                     </div>
-                                    <span class="text-xs font-semibold text-gray-600">Study</span>
+                                    <span class="text-xs font-semibold text-gray-600">History</span>
                               </button>
+                              <?php endif; ?>
                               <button onclick="$('#profile').click()"
                                     class="bg-white border border-gray-100 rounded-xl p-4 flex flex-col items-center gap-2 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group">
                                     <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition">
@@ -153,14 +183,14 @@ $unread_messages = (int) $unread_stmt->fetchColumn();
                                           <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
                                                 <i class="bx-news text-orange-600"></i>
                                           </div>
-                                          <h4 class="text-sm font-bold text-gray-800">Latest News</h4>
+                                          <h4 class="text-sm font-semibold text-gray-800">Latest News</h4>
                                     </div>
                                     <span class="text-xs text-gray-400"><?= count($blogs_list) ?> posts</span>
                               </div>
                               <?php if (count($blogs_list) > 0): ?>
                                     <div class="space-y-3 max-h-72 overflow-y-auto">
                                           <?php foreach (array_slice($blogs_list, 0, 5) as $blog): ?>
-                                                <div class="blog_post flex items-start gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition cursor-pointer group"
+                                                <div class="blog_post flex items-start gap-4 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition cursor-pointer group"
                                                       data-url="/school_app/student/blog/post.php?post_id=<?= $blog->id ?>">
                                                       <div class="min-w-0 flex-1">
                                                             <p class="text-[11px] font-semibold text-blue-500 uppercase tracking-wide"><?= htmlspecialchars($blog->blog_category ?? '') ?></p>
@@ -196,7 +226,7 @@ $unread_messages = (int) $unread_stmt->fetchColumn();
                                           <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                                                 <i class="bx-bell text-blue-600"></i>
                                           </div>
-                                          <h4 class="text-sm font-bold text-gray-800">Recent Messages</h4>
+                                          <h4 class="text-sm font-semibold text-gray-800">Recent Messages</h4>
                                     </div>
                                     <?php if ($unread_messages > 0): ?>
                                           <span class="text-xs bg-red-100 text-red-600 font-bold px-2 py-0.5 rounded-full"><?= $unread_messages ?> unread</span>
@@ -257,6 +287,7 @@ $unread_messages = (int) $unread_stmt->fetchColumn();
       });
 </script>
 
+<?php require '../components/support_modal.php' ?>
 <?php require '../components/footer.php'; ?>
 <?php require '../components/notification.php'; ?>
 
@@ -276,7 +307,7 @@ $unread_messages = (int) $unread_stmt->fetchColumn();
                         <div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-2">
                               <i class="bx-party text-4xl text-blue-600"></i>
                         </div>
-                        <h3 class="text-2xl font-bold text-gray-800 text-center">Welcome to <?= strtoupper(explode(' ', $result->school_name ?? 'SCHOOL')[0])?> Portal</h3>
+                        <h3 class="text-2xl font-semibold text-gray-800 text-center">Welcome to <?= strtoupper(explode(' ', $result->school_name ?? 'SCHOOL')[0])?> Portal</h3>
                   </div>
                   
                   <p class="text-lg text-gray-500 text-center leading-relaxed">

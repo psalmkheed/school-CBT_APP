@@ -54,7 +54,7 @@ if (!isset($_SESSION['active_session']) || empty($_SESSION['active_session'])) {
 
 <head>
       <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
       <title><?= strtoupper(explode(' ', $result->school_name)[0]) ?? '' ?> CBT Portal <?= ucfirst($role) ?? '' ?> - Dashboard
       </title>
       <link rel="manifest" href="/school_app/manifest.php">
@@ -66,8 +66,8 @@ if (!isset($_SESSION['active_session']) || empty($_SESSION['active_session'])) {
       <link href="<?= $base ?>src/fontawesome.css" rel="stylesheet">
       <link href="<?= $base ?>src/swiper.css" rel="stylesheet">
       <link href="<?= $base ?>src/boxicons.css" rel="stylesheet">
-      <link href="<?= $base ?>src/output.css" rel="stylesheet">
-      <link href="<?= $base ?>src/input.css" rel="stylesheet">
+      <link href="<?= $base ?>src/output.css?v=<?= time() ?>" rel="stylesheet">
+      <link href="<?= $base ?>src/input.css?v=<?= time() ?>" rel="stylesheet">
       <script src="<?= $base ?>src/jquery.js"></script>
       <script src="<?= $base ?>src/swiper-bundle.js"></script>
       <script src="<?= $base ?>src/sweetAlert.js"></script>
@@ -216,6 +216,29 @@ if (!isset($_SESSION['active_session']) || empty($_SESSION['active_session'])) {
             }
       </style>
 
+      <script type="importmap">
+      {
+            "imports": {
+                  "ckeditor5": "/school_app/assets/ckeditor/ckeditor5/ckeditor5.js?v=<?= time() ?>",
+                        "ckeditor5/": "/school_app/assets/ckeditor/ckeditor5/"
+                  }
+            }
+            </script>
+      <script type="module" src="/school_app/assets/ckeditor/main.js?v=<?= time() ?>"
+            onerror="console.error('Fatal: Failed to load main.js module file'); alert('Editor script loading failed.');">
+            </script>
+      <script>
+            console.log('Loader: Root Header diagnostics running...');
+            (function checkEditorExposed() {
+                  const checkInterval = setInterval(() => {
+                        if (window.ClassicEditor) {
+                              console.log('Loader: SUCCESS - ClassicEditor available globally.');
+                              clearInterval(checkInterval);
+                        }
+                  }, 500);
+                  setTimeout(() => { clearInterval(checkInterval); }, 5000);
+            })();
+      </script>
 </head>
 
 <body class="select-none user-<?= $role ?>">

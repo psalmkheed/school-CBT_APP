@@ -1,5 +1,9 @@
 <?php
 
+require_once __DIR__ . '/functions.php';
+
+date_default_timezone_set('Africa/Lagos');
+
 try{
 $host = 'localhost';
  $dbname = 'edu_app';
@@ -37,8 +41,7 @@ die("Database connection failed: " . $e->getMessage());
 
 }
 
-
-// deleting notification if read and older than 5 days
+// deleting notification if read and older than 1 day
 
 $cleanup_interval = 14400; 
 
@@ -47,7 +50,7 @@ if (!isset($_SESSION['last_cleanup_time']) || (time() - $_SESSION['last_cleanup_
             $clean_stmt = $conn->prepare("
             DELETE FROM broadcast 
             WHERE is_read = 1 
-            AND created_at < NOW() - INTERVAL 5 DAY
+            AND created_at < NOW() - INTERVAL 1 DAY
         ");
             $clean_stmt->execute();
 

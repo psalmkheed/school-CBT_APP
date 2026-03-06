@@ -13,6 +13,64 @@
     display: none !important;
 }
 
+/* Sidebar collapsed state (Desktop) */
+@media (min-width: 768px) {
+      #sideBar {
+            transition: width 0.3s ease, transform 0.3s ease;
+      }
+
+      #sideBar.sidebar-collapsed {
+            width: 85px;
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+      }
+
+      #sideBar.sidebar-collapsed p,
+      #sideBar.sidebar-collapsed h1,
+      #sideBar.sidebar-collapsed h2,
+      #sideBar.sidebar-collapsed h3,
+      #sideBar.sidebar-collapsed h4,
+      #sideBar.sidebar-collapsed h5,
+      #sideBar.sidebar-collapsed h6,
+      #sideBar.sidebar-collapsed .dropdown-arrow,
+      #sideBar.sidebar-collapsed .sidebar-dropdown-wrapper ul,
+      #sideBar.sidebar-collapsed .mt-auto {
+            display: none !important;
+      }
+
+      #sideBar.sidebar-collapsed .md\:flex.items-center.gap-2 {
+            justify-content: center !important;
+            padding: 0.5rem 0 !important;
+      }
+
+      #sideBar.sidebar-collapsed .li,
+      #sideBar.sidebar-collapsed .sidebar-dropdown-btn {
+            justify-content: center !important;
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+      }
+
+      #sideBar.sidebar-collapsed .sidebar-dropdown-btn div {
+            justify-content: center;
+            width: 100%;
+      }
+
+      #sideBar.sidebar-collapsed .li i,
+      #sideBar.sidebar-collapsed .sidebar-dropdown-btn i {
+            margin: 0 !important;
+            font-size: 1.75rem;
+      }
+
+      /* Main content adjustment */
+      #sideBar.sidebar-collapsed~main {
+            margin-left: 85px;
+            transition: margin-left 0.3s ease;
+      }
+
+      main {
+            transition: margin-left 0.3s ease;
+      }
+}
 /* Disable browser default pull-to-refresh to favor our custom one */
 html, body {
     overscroll-behavior-y: contain;
@@ -44,7 +102,7 @@ html, body {
 }
 
 .sidebar li {
-      @apply px-5 py-3 cursor-pointer text-gray-500;
+      @apply px-4 py-3 cursor-pointer text-gray-500;
 }
 
 
@@ -81,16 +139,25 @@ html, body {
 
 /* active list style */
 .user-admin .li.active {
-      @apply border border-green-200 bg-linear-to-r from-green-100 to-green-200;
+      background: linear-gradient(135deg, #00A63E 0%, #00C853 100%) !important;
+      color: white !important;
+      box-shadow: 0 4px 15px rgba(0, 166, 62, 0.2);
+      font-weight: 700;
 }
 
+.user-admin .li:hover:not(.active) {
+      background-color: #f0fdf4;
+      /* Very light success green */
+      color: #00A63E;
+      /* Primary Green from DD-WebApp */
+}
 .user-staff .li.active, .user-student .li.active {
       @apply border border-blue-200 bg-linear-to-r from-blue-100 to-blue-200;
 }
 
 /* admin active state icon */
 .user-admin .li.active i {
-      @apply text-transparent bg-linear-to-b from-green-700 via-green-500 to-orange-500 bg-clip-text;
+      @apply text-white;
 }
 
 /* staff/student active state icon */
@@ -207,7 +274,7 @@ header.masthead:after {
       right: 0;
       bottom: 0;
       background-color: #212529;
-      opacity: 0.9;
+      opacity: 0.6;
 }
 
 

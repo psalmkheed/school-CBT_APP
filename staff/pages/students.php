@@ -46,10 +46,16 @@ $students = $stmt->fetchAll(PDO::FETCH_OBJ);
             </div>
         </div>
 
-        <div class="flex items-center gap-2">
-            <button
-                class="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition shadow-sm flex items-center gap-2">
-                <i class="bxs-arrow-big-down-line"></i> Export List
+        <div class="flex flex-col md:flex-row items-center gap-3">
+             <div class="relative w-full md:w-64 group">
+                <i class="bx bx-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors"></i>
+                <input type="text" id="staffStudentSearch" 
+                    class="w-full pl-11 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 transition shadow-sm"
+                    placeholder="Search students...">
+            </div>
+            <button id="staffStudentCSV"
+                class="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition shadow-sm flex items-center gap-2 cursor-pointer">
+                <i class="bx bx-cloud-download"></i> Export CSV
             </button>
         </div>
     </div>
@@ -57,7 +63,7 @@ $students = $stmt->fetchAll(PDO::FETCH_OBJ);
     <!-- Students Table Card -->
     <div class="bg-white rounded-3xl border border-gray-100 shadow-xl overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse">
+            <table id="staffStudentTable" class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-gray-50/50 border-b border-gray-100">
                         <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Student Info</th>
@@ -67,7 +73,7 @@ $students = $stmt->fetchAll(PDO::FETCH_OBJ);
                             Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-gray-50">
+                <tbody id="staffStudentTableBody" class="divide-y divide-gray-50">
                     <?php if (count($students) > 0): ?>
                         <?php foreach ($students as $student):
                             $initials = strtoupper(substr($student->first_name, 0, 1) . substr($student->last_name, 0, 1));
@@ -183,6 +189,15 @@ $students = $stmt->fetchAll(PDO::FETCH_OBJ);
 </div>
 
 <script>
+    // Initialize search
+    window.initTableToolkit({
+        searchId: 'staffStudentSearch',
+        tableId: 'staffStudentTable',
+        bodyId: 'staffStudentTableBody',
+        csvBtnId: 'staffStudentCSV',
+        csvName: 'my_students'
+    });
+
     // Handle pagination clicks without reloading the whole page browser-wise
     $(".staff-student-pagination-btn").off("click").on("click", function () {
         const page = $(this).data("page");

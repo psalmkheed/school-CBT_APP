@@ -13,7 +13,15 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
       }
 </style>
 
-<div class="fadeIn w-full overflow-x-auto bg-white rounded-xl shadow" id="staffRecord">
+<div class="fadeIn w-full flex flex-col gap-4">
+    <div class="relative w-full md:w-64 group">
+        <i class="bx bx-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors"></i>
+        <input type="text" id="adminStaffSearch" 
+            class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 transition shadow-sm"
+            placeholder="Search staff...">
+    </div>
+
+    <div class="overflow-x-auto bg-white rounded-xl shadow" id="staffRecord">
       <table class="md:min-w-[900px] w-full text-sm text-left text-gray-700">
             <thead class="bg-orange-200 text-orange-600 uppercase text-xs tracking-wider sticky top-0">
                   <tr>
@@ -183,14 +191,19 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
                                                 text: 'Staff record updated',
                                                 timer: 1300,
                                                 showConfirmButton: false
-                                          });
-                                    },
-                                    error: function () {
-                                          Swal.fire('Error', 'Server error', 'error');
-                                    }
+                                    });
                               });
-                        });
-                  }
+                        }
+                  });
+            });
+
+            $('#adminStaffSearch').on('input', function() {
+                  const q = $(this).val().toLowerCase();
+                  $('tbody tr').each(function() {
+                        const t = $(this).text().toLowerCase();
+                        $(this).toggle(t.includes(q));
+                  });
             });
       });
 </script>
+</div>

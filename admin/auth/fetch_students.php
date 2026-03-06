@@ -71,10 +71,10 @@ $totalPages = ceil($totalRecords / $limit);
             </td>
             <td class="px-4 py-3 text-right">
                 <div class="flex items-center justify-end gap-2 text-gray-400 group-hover:text-gray-600 transition-colors">
-                    <button class="edit-btn p-2 hover:bg-sky-50 hover:text-sky-600 rounded-xl transition cursor-pointer" data-id="<?= $row->id ?>" title="Edit Student">
+                    <button class="edit-btn p-2 hover:bg-sky-50 hover:text-sky-600 rounded-xl transition cursor-pointer" data-id="<?= $row->id ?>" data-tippy-content="Edit Student">
                         <i class="bx-pencil text-xl"></i>
                     </button>
-                    <button class="delete-btn p-2 hover:bg-red-50 hover:text-red-600 rounded-xl transition cursor-pointer" data-id="<?= $row->id ?>" title="Delete Student">
+                    <button class="delete-btn p-2 hover:bg-red-50 hover:text-red-600 rounded-xl transition cursor-pointer" data-id="<?= $row->id ?>" data-tippy-content="Delete Student">
                         <i class="bx-trash text-xl"></i>
                     </button>
                 </div>

@@ -289,6 +289,9 @@ $(function () {
                   data: { page: page },
                   success: function (data) {
                         $("#examTable").html(data);
+                        if (window.initTooltips) {
+                              window.initTooltips();
+                        }
                   }
             });
       }

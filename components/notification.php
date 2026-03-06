@@ -40,7 +40,7 @@
                                                       '{lastname}'  => $user->last_name ?? '',
                                                       '{fullname}'  => ($user->first_name ?? 'User') . ' ' . ($user->last_name ?? ''),
                                                       '{role}'      => ucfirst($_SESSION['role'] ?? 'User'),
-                                                      '{school_name}' => $result->school_name ?? '',
+                                                '{school_name}' => strtoupper($result->school_name) ?? '',
                                                 ];
                                                 
                                                 // Replace case-insensitively

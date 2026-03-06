@@ -34,14 +34,20 @@ if (!$user) {
     exit;
 }
 
+// Temporarily set session ID for logging failed password
+$_SESSION['user_id'] = $user->id;
 
 if (!password_verify($password, $user->password)) {
+    recordActivity($conn, 'LOGIN_FAILED', "Failed login attempt for User ID: {$user->user_id}", 'warning');
+    unset($_SESSION['user_id']); // Remove temp session
     $response["message"] = "Invalid password";
     echo json_encode($response);
     exit;
 }
 
 if ($user->status == 0) {
+    recordActivity($conn, 'LOGIN_BLOCKED', "Deactivated user {$user->user_id} tried to log in.", 'warning');
+    unset($_SESSION['user_id']); // Remove temp session
     $response["message"] = "Your account has been deactivated. Please contact the administrator for assistance.";
     echo json_encode($response);
     exit;
@@ -62,6 +68,8 @@ if ($user->status == 0) {
         $class_stmt->execute([':id' => $user->id]);
         $_SESSION['class'] = $class_stmt->fetchColumn() ?: 'Unassigned';
     }
+
+recordActivity($conn, 'LOGIN', "User logged in successfully via {$_SERVER['HTTP_USER_AGENT']}");
     session_write_close();
 
     $response["status"] = "success";

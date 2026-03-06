@@ -43,6 +43,8 @@ try {
             ':username' => $username
       ]);
 
+      recordActivity($conn, 'BROADCAST_SEND', "Admin sent a message to '$recipient' (Subject: '$subject')");
+
       echo json_encode([
             "status" => "success",
             "message" => "Message sent successfully"

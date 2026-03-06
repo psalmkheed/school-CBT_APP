@@ -76,6 +76,8 @@ if (!move_uploaded_file($tmpName, $destination)) {
 $stmt = $conn->prepare("INSERT INTO blog (blog_title, blog_category, blog_message, blog_image) VALUES (?, ?, ?, ?)");
 $stmt->execute([$blog_title, $blog_category, $blog_message, $newName]);
 
+recordActivity($conn, 'BLOG_PUBLISH', "Admin published a new blog post: '$blog_title'");
+
 echo json_encode([
       'status' => 'success',
       'message' => 'Blog published successfully'

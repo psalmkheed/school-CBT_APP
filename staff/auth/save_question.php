@@ -11,12 +11,23 @@ if ($user->role !== 'staff') {
 $id = $_POST['existing_id'] ?? '';
 $exam_id = $_POST['exam_id'] ?? '';
 $q_num = $_POST['question_number'] ?? '';
-$text = $_POST['question_text'] ?? '';
-$a = $_POST['option_a'] ?? '';
-$b = $_POST['option_b'] ?? '';
-$c = $_POST['option_c'] ?? '';
-$d = $_POST['option_d'] ?? '';
-$correct = $_POST['correct_answer'] ?? '';
+$text = trim($_POST['question_text'] ?? '');
+$q_type = in_array($_POST['question_type'] ?? '', ['mcq', 'fill_blank']) ? $_POST['question_type'] : 'mcq';
+
+// For fill_blank: use the fill_correct_answer as correct answer
+if ($q_type === 'fill_blank') {
+    $a = 'N/A';
+    $b = 'N/A';
+    $c = 'N/A';
+    $d = 'N/A';
+    $correct = trim($_POST['fill_correct_answer'] ?? $_POST['correct_answer'] ?? '');
+} else {
+    $a = trim($_POST['option_a'] ?? '');
+    $b = trim($_POST['option_b'] ?? '');
+    $c = trim($_POST['option_c'] ?? '');
+    $d = trim($_POST['option_d'] ?? '');
+    $correct = trim($_POST['correct_answer'] ?? '');
+}
 
 if (empty($exam_id) || empty($q_num) || empty($text) || empty($correct)) {
     echo json_encode(['success' => false, 'message' => 'Please fill all required fields']);
@@ -32,7 +43,8 @@ try {
             option_b = :b,
             option_c = :c,
             option_d = :d,
-            correct_answer = :correct
+            correct_answer = :correct,
+            question_type = :qtype
             WHERE id = :id AND exam_id = :exam_id");
         $stmt->execute([
             ':text' => $text,
@@ -41,6 +53,7 @@ try {
             ':c' => $c,
             ':d' => $d,
             ':correct' => $correct,
+            ':qtype' => $q_type,
             ':id' => $id,
             ':exam_id' => $exam_id
         ]);
@@ -57,7 +70,8 @@ try {
                 option_b = :b,
                 option_c = :c,
                 option_d = :d,
-                correct_answer = :correct
+                correct_answer = :correct,
+                question_type = :qtype
                 WHERE id = :id");
             $stmt->execute([
                 ':text' => $text,
@@ -66,12 +80,13 @@ try {
                 ':c' => $c,
                 ':d' => $d,
                 ':correct' => $correct,
+                ':qtype' => $q_type,
                 ':id' => $existing['id']
             ]);
         } else {
             // Insert
-            $stmt = $conn->prepare("INSERT INTO questions (exam_id, question_number, question_text, option_a, option_b, option_c, option_d, correct_answer) 
-                VALUES (:exam_id, :q_num, :text, :a, :b, :c, :d, :correct)");
+            $stmt = $conn->prepare("INSERT INTO questions (exam_id, question_number, question_text, option_a, option_b, option_c, option_d, correct_answer, question_type) 
+                VALUES (:exam_id, :q_num, :text, :a, :b, :c, :d, :correct, :qtype)");
             $stmt->execute([
                 ':exam_id' => $exam_id,
                 ':q_num' => $q_num,
@@ -80,7 +95,8 @@ try {
                 ':b' => $b,
                 ':c' => $c,
                 ':d' => $d,
-                ':correct' => $correct
+                ':correct' => $correct,
+                ':qtype' => $q_type,
             ]);
         }
     }

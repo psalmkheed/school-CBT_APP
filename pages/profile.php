@@ -66,12 +66,14 @@ if ($result->role === 'staff') {
                         </div>
                   </div>
             </div>
+            <?php if ($_SESSION['role'] !== 'student'): ?>
             <button id="changePasswordBtn"
                   class="w-full md:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 <?= $themeBorderHover ?> <?= $themeTextHover ?> <?= $themeBgHover ?> transition-all duration-200 shadow-sm cursor-pointer"
                   data-tippy-content="Update your account password">
                   <i class="bx-lock-alt text-base"></i>
                   Change Password
             </button>
+            <?php endif ?>
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -269,10 +271,12 @@ if ($result->role === 'staff') {
                                           <p class="text-xs text-gray-400">Manage your account security</p>
                                     </div>
                               </div>
+                              <?php if ($_SESSION['role'] !== 'student'): ?>
                               <button type="button"
                                     class="openPasswordModal text-xs <?= $themeBg ?> <?= $themeText ?> hover:bg-<?= $themeColor ?>-200 transition-colors font-bold px-4 py-1.5 rounded-full cursor-pointer">
                                     Change Password
                               </button>
+                              <?php endif ?>
                         </div>
                   </div>
 

@@ -15,7 +15,7 @@ $stmt->execute([':user_id' => $userId]);
 $unreadCount = (int) $stmt->fetchColumn();
 
 // Dynamic Theme Colors
-$themeColor   = ($user->role === 'admin') ? 'green' : (($user->role === 'staff') ? 'sky' : 'blue');
+$themeColor = ($user->role === 'admin') ? 'green' : (($user->role === 'staff') ? 'sky' : 'blue');
 $themeText    = "text-{$themeColor}-600";
 $themeHoverBg = "hover:bg-{$themeColor}-50";
 $themeHoverText = "hover:text-{$themeColor}-700";
@@ -23,9 +23,9 @@ $themeRing    = "ring-{$themeColor}-200";
 $themeGradient = ($user->role === 'admin') ? 'from-green-50 to-emerald-50/30' : 'from-blue-50 to-indigo-50/30';
 
 $navBg = match($user->role) {
-    'admin'   => 'bg-green-500 text-green-100',
+      'admin' => 'bg-white text-green-600',
     'student' => 'bg-blue-500 text-blue-100',
-    'staff'   => 'bg-sky-500 text-sky-100',
+      'staff' => 'bg-white text-sky-600',
     default   => 'bg-gray-500 text-gray-100',
 };
 ?>
@@ -34,10 +34,24 @@ $navBg = match($user->role) {
 <nav class="md:px-10 py-3 px-2 flex items-center justify-between sticky top-0 z-[100] shadow-sm <?= $navBg ?> md:bg-white">
 
       <!-- Left: Hamburger + Title -->
-      <div class="flex items-center gap-2 md:invisible">
-            <i class="fa-solid fa-bars text-2xl cursor-pointer md:hidden"
+      <div class="flex items-center gap-2">
+            <i class="fa-solid fa-bars text-2xl cursor-pointer"
                id="sideBarToggler" data-tippy-content="Toggle Sidebar Menu"></i>
-            <h4 class="text-lg font-bold md:hidden">Dashboard</h4>
+            <h4 class="text-xl font-black md:hidden <?php if ($user->role !== 'admin')
+                  echo 'ml-[15px]' ?>">
+                  Dashboard
+            </h4>
+            
+            <!-- NEW: Mobile Fullscreen Button (Quick reclaim UI) -->
+            <button onclick="if(window.enterAppMode) window.enterAppMode()"
+                  class="md:hidden flex items-center justify-center p-2 rounded-xl <?php if ($user->role === 'student') {
+                  echo 'bg-white/20 text-white';
+            } else {
+                  echo "bg-$themeColor-100 text-$themeColor-500";
+            } ?> backdrop-blur-sm border border-white/10 ml-1 active:scale-95 transition-all cursor-pointer"
+                  data-tippy-content="Hide Browser UI">
+                  <i class="bx bx-fullscreen text-xl cursor-pointer"></i>
+            </button>
       </div>
 
       <!-- Right: Fullscreen + Bell + Avatar -->
@@ -47,10 +61,11 @@ $navBg = match($user->role) {
             <button id="fullscreenToggler"
                     class="hidden md:block bg-gray-100 px-3 py-1.5 rounded-lg text-gray-500 text-sm cursor-pointer"
                     data-tippy-content="Maximize View">
-                  Go Fullscreen
+                  <p>Go Fullscreen</p>
             </button>
 
             <!-- Notification Bell -->
+            <?php if ($_SESSION['role'] !== 'admin'): ?>
             <div class="relative h-9 w-9 md:h-11 md:w-11 rounded-full border border-red-400/50 bg-red-50 flex items-center justify-center cursor-pointer"
                  id="notification_toggler" data-tippy-content="View Notifications">
                   <span class="absolute -top-1 -right-1 flex h-4 w-4">
@@ -64,6 +79,7 @@ $navBg = match($user->role) {
                   </span>
                   <i class="bxs-bell text-xl text-red-600"></i>
             </div>
+            <?php endif ?>
 
             <!-- Account Avatar (trigger) -->
             <div class="cursor-pointer flex items-center" id="dropDownMenu"
@@ -126,7 +142,8 @@ $navBg = match($user->role) {
 
                   <?php if (isset($_SESSION['role']) && $_SESSION['role'] === 'student'): ?>
                         <li>
-                              <div class="flex items-center gap-3 px-4 py-3 rounded-xl <?= $themeHoverBg ?> <?= $themeHoverText ?> text-gray-700 transition group cursor-pointer">
+                              <div onclick="const base = '<?= APP_URL ?>'; window.loadPage(base + 'student/pages/exam_history.php')" 
+                                   class="flex items-center gap-3 px-4 py-3 rounded-xl <?= $themeHoverBg ?> <?= $themeHoverText ?> text-gray-700 transition group cursor-pointer">
                                     <div class="w-9 h-9 rounded-lg bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition">
                                           <i class="bx-book-bookmark text-xl text-orange-600"></i>
                                     </div>

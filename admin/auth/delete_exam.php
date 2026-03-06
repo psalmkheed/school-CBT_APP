@@ -25,6 +25,10 @@ try {
     $stmt = $conn->prepare("DELETE FROM exams WHERE id = :id");
     $deleted = $stmt->execute([':id' => $id]);
 
+    if ($deleted) {
+        recordActivity($conn, 'EXAM_DELETE', "Admin deleted Examination ID: $id (and its questions)", 'warning');
+    }
+
     $conn->commit();
 
     echo json_encode([

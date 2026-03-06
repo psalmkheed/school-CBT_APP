@@ -71,11 +71,12 @@ if (isset($_SESSION['session_end_date'])) {
       <link href="<?= $base ?>src/fontawesome.css" rel="stylesheet">
       <link href="<?= $base ?>src/swiper.css" rel="stylesheet">
       <link href="<?= $base ?>src/boxicons.css" rel="stylesheet">
-      <link href="<?= $base ?>src/output.css" rel="stylesheet">
-      <link href="<?= $base ?>src/input.css" rel="stylesheet">
+      <link href="<?= $base ?>src/output.css?v=<?= time() ?>" rel="stylesheet">
+      <link href="<?= $base ?>src/input.css?v=<?= time() ?>" rel="stylesheet">
       <script src="<?= $base ?>src/jquery.js"></script>
       <script src="<?= $base ?>src/swiper-bundle.js"></script>
       <script src="<?= $base ?>src/sweetAlert.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
       <!-- Premium Tooltips (Tippy.js) -->
       <script src="https://unpkg.com/@popperjs/core@2"></script>
@@ -109,12 +110,42 @@ if (isset($_SESSION['session_end_date'])) {
       <script type="importmap">
       {
             "imports": {
-                  "ckeditor5": "/school_app/assets/ckeditor/ckeditor5/ckeditor5.js",
+                  "ckeditor5": "/school_app/assets/ckeditor/ckeditor5/ckeditor5.js?v=<?= time() ?>",
                   "ckeditor5/": "/school_app/assets/ckeditor/ckeditor5/"
             }
       }
       </script>
-      <script type="module" src="/school_app/assets/ckeditor/main.js"></script>
+      <script type="module">
+            console.log('Header Diagnostics: Checking for CKEditor scripts...');
+      </script>
+      <script type="module" src="/school_app/assets/ckeditor/main.js?v=<?= time() ?>"
+            onerror="console.error('Fatal: Failed to load main.js module file at /school_app/assets/ckeditor/main.js'); alert('Editor script loading failed. Check console.');">
+            </script>
+      <script>
+            console.log('Loader: Header parsed successfully. Document URL: ', window.location.href);
+            window.addEventListener('error', function (e) {
+                  if (e.target.tagName === 'SCRIPT') {
+                        console.error('Loader: Script failed to load: ', e.target.src);
+                  }
+            }, true);
+
+            (function checkEditorExposed() {
+                  console.log('Loader: Checking window.ClassicEditor presence...');
+                  const checkInterval = setInterval(() => {
+                        if (window.ClassicEditor) {
+                              console.log('Loader: SUCCESS - ClassicEditor is now available globally.');
+                              clearInterval(checkInterval);
+                        }
+                  }, 500);
+
+                  setTimeout(() => {
+                        if (!window.ClassicEditor) {
+                              console.error('Loader: TIMEOUT - ClassicEditor never appeared after 5s.');
+                        }
+                        clearInterval(checkInterval);
+                  }, 5000);
+            })();
+      </script>
 
 </head>
 

@@ -59,6 +59,7 @@ $totalPages = ceil($totalRecords / $limit);
                         <button 
                               data-id="<?= $exam->id ?>"
                               data-status="<?= $exam->exam_status ?>"
+                              data-tippy-content="Change Status: Currently <?= $exam->exam_status ?>"
                               class="status-exam-btn px-3 py-1 text-xs font-semibold rounded-md cursor-pointer
                         <?php
                         if ($exam->exam_status === 'published') {
@@ -76,6 +77,7 @@ $totalPages = ceil($totalRecords / $limit);
 
                         <button 
                               data-id="<?= $exam->id ?>"
+                              data-tippy-content="Delete Exam"
                               class="delete-exam-btn px-3 py-1 text-xs font-semibold rounded-md bg-red-500 text-white hover:bg-red-600 cursor-pointer">
                               Delete
                         </button>

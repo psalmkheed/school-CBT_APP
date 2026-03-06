@@ -14,6 +14,7 @@ if ($_SESSION['role'] !== 'admin') {
 }
 
 
+
 // Collect & trim inputs
 $first_name = trim($_POST["first_name"] ?? '');
 $last_name = trim($_POST["last_name"] ?? '');
@@ -71,6 +72,8 @@ $stmt->execute([
       ':password' => $hashed_password,
       ':user_role' => $user_role
 ]);
+
+recordActivity($conn, 'USER_REGISTER', "Admin created new $user_role: $first_name $last_name ($user_id)");
 
 $response["status"] = "success";
 $response["message"] = "User registered successfully";

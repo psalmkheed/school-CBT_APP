@@ -2,7 +2,7 @@
 
 require '../../connections/db.php';
 
-$class_populate = $conn->prepare("SELECT class FROM class");
+$class_populate = $conn->prepare("SELECT class FROM class ORDER BY class ASC");
 $class_populate->execute();
 
 $rows = $class_populate->fetchAll(PDO::FETCH_OBJ);
@@ -116,10 +116,7 @@ $rows = $class_populate->fetchAll(PDO::FETCH_OBJ);
 
 
 <script>
-
-
-
-      // Register AJAX
+  // Register AJAX
       $("#regForm").on("submit", function (e) {
             e.preventDefault();
 

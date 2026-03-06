@@ -19,6 +19,10 @@ $id = (int) $_POST['del_id'];
 $stmt = $conn->prepare("DELETE FROM users WHERE id = :id");
 $deleted = $stmt->execute([':id' => $id]);
 
+if ($deleted) {
+      recordActivity($conn, 'USER_DELETE', "Admin deleted user account (ID: $id)", 'warning');
+}
+
 echo json_encode([
       'success' => $deleted,
       'message' => $deleted ? 'User deleted' : 'Delete failed'

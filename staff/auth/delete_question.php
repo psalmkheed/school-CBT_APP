@@ -20,6 +20,8 @@ try {
     $stmt = $conn->prepare("DELETE FROM questions WHERE id = :id AND exam_id = :exam_id");
     $stmt->execute([':id' => $id, ':exam_id' => $exam_id]);
 
+    recordActivity($conn, 'QUESTION_DELETE', "Staff deleted Question ID: $id from Exam ID: $exam_id", 'warning');
+
     // Check if exam status needs to be reverted to 'set up'
     $stmt = $conn->prepare("SELECT num_quest FROM exams WHERE id = :id");
     $stmt->execute([':id' => $exam_id]);

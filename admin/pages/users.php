@@ -16,7 +16,7 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
                         <i class="bx bx-arrow-left-stroke text-4xl"></i>
                   </button>
                   <div class="flex items-center gap-4">
-                        <div class="p-3.5 rounded-2xl bg-red-50 text-red-600 shadow-sm border border-red-100 shrink-0">
+                        <div class="p-3.5 rounded-2xl bg-emerald-50 text-emerald-600 shadow-sm border border-emerald-100 shrink-0">
                               <i class="bx bx-group text-3xl"></i>
                         </div>
                         <div>
@@ -27,21 +27,30 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
                         </div>
                   </div>
             </div>
-            <!-- button div -->
-            <div class="flex p-1.5 bg-gray-100/50 rounded-2xl border border-gray-100 w-full md:w-auto overflow-x-auto">
-                  <button
-                        class="flex-1 md:flex-none px-6 py-2.5 rounded-xl transition-all duration-300 font-bold text-sm cursor-pointer flex gap-2 items-center justify-center group"
-                        id="studentBtn">
-                        <i class="bx-user text-lg text-sky-500 group-hover:scale-110 transition-transform"></i>
-                        <span class="text-gray-600">Students</span>
-                  </button>
+            <!-- Search & Filters -->
+            <div class="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+                <div class="relative w-full md:w-64 group">
+                    <i class="bx bx-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-emerald-500 transition-colors"></i>
+                    <input type="text" id="userRecordSearch" 
+                        class="w-full pl-11 pr-4 py-2.5 bg-gray-100/50 border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all"
+                        placeholder="Search records...">
+                </div>
 
-                  <button
-                        class="flex-1 md:flex-none px-6 py-2.5 rounded-xl transition-all duration-300 font-bold text-sm cursor-pointer flex gap-2 items-center justify-center group"
-                        id="staffBtn">
-                        <i class="bx-user text-lg text-orange-500 group-hover:scale-110 transition-transform"></i>
-                        <span class="text-gray-600">Staff Members</span>
-                  </button>
+                <div class="flex p-1.5 bg-gray-100/50 rounded-2xl border border-gray-100 w-full md:w-auto overflow-x-auto gap-2">
+                    <button
+                            class="flex-1 md:flex-none px-6 py-2.5 rounded-xl transition-all duration-300 font-bold text-sm cursor-pointer flex gap-2 items-center justify-center group"
+                            id="studentBtn">
+                            <i class="bx-user text-lg text-sky-500 group-hover:scale-110 transition-transform"></i>
+                            <span class="text-gray-600">Students</span>
+                    </button>
+
+                    <button
+                            class="flex-1 md:flex-none px-6 py-2.5 rounded-xl transition-all duration-300 font-bold text-sm cursor-pointer flex gap-2 items-center justify-center group"
+                            id="staffBtn">
+                            <i class="bx-user text-lg text-orange-500 group-hover:scale-110 transition-transform"></i>
+                            <span class="text-gray-600">Staff Members</span>
+                    </button>
+                </div>
             </div>
 
       </div>
@@ -78,7 +87,7 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
                         success: function (data) {
                               $("#userTableBody").html(data);
                               registerStudentHandlers();
-                              initTooltips();
+                              if (typeof initTooltips === 'function') initTooltips();
                         }
                   });
             }
@@ -102,14 +111,26 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
                         success: function (data) {
                               $("#userTableBody").html(data);
                               registerStaffHandlers();
-                              initTooltips();
+                              if (typeof initTooltips === 'function') initTooltips();
                         }
                   });
             }
 
             // Initial load
-            $("#studentBtn").addClass("bg-white shadow-sm").find("span").addClass("text-sky-600");
+            $("#studentBtn").addClass("bg-white shadow-sm").find("span").addClass("text-emerald-600");
             loadStudents();
+            window.initTableSearch('userRecordSearch', 'userTableBody');
+
+            function initTooltips() {
+                if (window.tippy) {
+                   tippy('[data-tippy-content]', {
+                        allowHTML: true,
+                        animation: 'shift-away',
+                        arrow: true,
+                        theme: 'material'
+                    });
+                }
+            }
 
             // Toggle Buttons
             $("#studentBtn").off("click").on("click", function() {
@@ -122,15 +143,17 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
                               <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest text-right">Actions</th>
                         </tr>
                   `;
-                  $(".flex.p-1.5.bg-gray-100\\/50 button").removeClass("bg-white shadow-sm").find("span").removeClass("text-sky-600 text-orange-600");
-                  $(this).addClass("bg-white shadow-sm").find("span").addClass("text-sky-600");
+                  $(".flex.p-1.5.bg-gray-100\\/50 button").removeClass("bg-white shadow-sm").find("span").removeClass("text-emerald-600 text-amber-600");
+                  $("#staffBtn").removeClass("bg-white shadow-sm").find("span").removeClass("text-amber-600");
+                  $(this).addClass("bg-white shadow-sm").find("span").addClass("text-emerald-600");
                   $("#userTableHead").html(studentHead);
                   loadStudents(1);
             });
 
             $("#staffBtn").off("click").on("click", function() {
-                  $(".flex.p-1.5.bg-gray-100\\/50 button").removeClass("bg-white shadow-sm").find("span").removeClass("text-sky-600 text-orange-600");
-                  $(this).addClass("bg-white shadow-sm").find("span").addClass("text-orange-600");
+                  $(".flex.p-1.5.bg-gray-100\\/50 button").removeClass("bg-white shadow-sm").find("span").removeClass("text-emerald-600 text-amber-600");
+                  $("#studentBtn").removeClass("bg-white shadow-sm").find("span").removeClass("text-emerald-600");
+                  $(this).addClass("bg-white shadow-sm").find("span").addClass("text-amber-600");
                   loadStaff(1);
             });
 
@@ -142,8 +165,15 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
             $(document).on("click", ".staff-page-btn", function() {
                   loadStaff($(this).data("page"));
             });
+
+            // Expose globally for fetch scripts
+            window.initTooltips = initTooltips;
       });
 </script>
+
+<script src="https://unpkg.com/@popperjs/core@2"></script>
+<script src="https://unpkg.com/tippy.js@6"></script>
+
 
 <script>
       function registerStudentHandlers() {
@@ -212,7 +242,7 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
                                                 </div>
                                            </div>
                                      `,
-                                    confirmButtonColor: '#0084D1',
+                                     confirmButtonColor: '#10b981',
                                     showCancelButton: true,
                                     confirmButtonText: 'Save',
                                     preConfirm: () => {

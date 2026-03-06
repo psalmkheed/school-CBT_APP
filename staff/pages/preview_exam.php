@@ -31,9 +31,9 @@ $questions = $stmt->fetchAll(PDO::FETCH_OBJ);
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <div class="flex items-center gap-4">
                 <button onclick="loadPage('/school_app/staff/pages/exams.php')"
-                    class="size-10 shrink-0 rounded-full flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all cursor-pointer"
+                    class="md:hidden size-10 shrink-0 rounded-full flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all cursor-pointer"
                     title="Go back">
-                    <i class="bx bx-arrow-left text-2xl"></i>
+                    <i class="bx bx-arrow-left-stroke text-4xl"></i>
                 </button>
                 <div>
                     <h3 class="text-2xl font-bold text-gray-800">Preview Exam</h3>
@@ -71,24 +71,47 @@ $questions = $stmt->fetchAll(PDO::FETCH_OBJ);
                         </div>
                         
                         <div class="mb-6">
-                            <p class="text-lg font-bold text-gray-800 leading-relaxed"><?= nl2br(htmlspecialchars($q->question_text)) ?></p>
+                            <p class="text-lg font-bold text-gray-800 leading-relaxed"><?= $q->question_text ?></p>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <?php foreach (['A' => $q->option_a, 'B' => $q->option_b, 'C' => $q->option_c, 'D' => $q->option_d] as $key => $val): ?>
-                                <div class="flex items-center gap-3 p-4 rounded-2xl border <?= $q->correct_answer === $key ? 'border-green-200 bg-green-50/50' : 'border-gray-50 bg-gray-50/30' ?>">
-                                    <div class="size-8 shrink-0 rounded-lg flex items-center justify-center font-black text-sm <?= $q->correct_answer === $key ? 'bg-green-600 text-white shadow-lg shadow-green-100' : 'bg-white text-gray-400 border border-gray-100 shadow-sm' ?>">
-                                        <?= $key ?>
+                        <?php if (($q->question_type ?? 'mcq') === 'fill_blank'): ?>
+                            <!-- Fill in the Blank preview -->
+                            <div class="space-y-3">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <div class="px-3 py-1 bg-amber-100 rounded-lg">
+                                        <span class="text-[9px] font-black text-amber-600 uppercase tracking-widest">✏️ Fill in the Blank</span>
                                     </div>
-                                    <span class="text-sm font-bold <?= $q->correct_answer === $key ? 'text-green-800' : 'text-gray-600' ?>">
-                                        <?= htmlspecialchars($val) ?>
-                                    </span>
-                                    <?php if ($q->correct_answer === $key): ?>
-                                        <i class="bx bx-check-double text-green-600 ml-auto text-xl"></i>
-                                    <?php endif; ?>
                                 </div>
-                            <?php endforeach; ?>
-                        </div>
+                                <div class="flex items-center gap-3 p-4 rounded-2xl border border-green-200 bg-green-50/50">
+                                    <div
+                                        class="size-8 shrink-0 rounded-lg flex items-center justify-center font-black text-sm bg-green-600 text-white shadow-lg shadow-green-100">
+                                        <i class="bx bx-check text-sm"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <span class="text-[9px] font-bold uppercase tracking-widest text-green-500">Correct Answer</span>
+                                        <p class="text-sm font-bold text-green-800"><?= htmlspecialchars($q->correct_answer) ?></p>
+                                    </div>
+                                    <i class="bx bx-check-double text-green-600 text-xl"></i>
+                                </div>
+                            </div>
+                        <?php else: ?>
+                        <!-- MCQ Options -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <?php foreach (['A' => $q->option_a, 'B' => $q->option_b, 'C' => $q->option_c, 'D' => $q->option_d] as $key => $val): ?>
+                                    <div
+                                        class="flex items-center gap-3 p-4 rounded-2xl border <?= $q->correct_answer === $key ? 'border-green-200 bg-green-50/50' : 'border-gray-50 bg-gray-50/30' ?>">
+                                        <div
+                                            class="size-8 shrink-0 rounded-lg flex items-center justify-center font-black text-sm <?= $q->correct_answer === $key ? 'bg-green-600 text-white shadow-lg shadow-green-100' : 'bg-white text-gray-400 border border-gray-100 shadow-sm' ?>">
+                                            <?= $key ?>
+                                    </div>
+                                        <span class="text-sm font-semibold <?= $q->correct_answer === $key ? 'text-green-800' : 'text-gray-600' ?>"><?= $val ?></span>
+                                        <?php if ($q->correct_answer === $key): ?>
+                                            <i class="bx bx-check-double text-green-600 ml-auto text-xl"></i>
+                                        <?php endif; ?>
+                                        </div>
+                                        <?php endforeach; ?>
+                                        </div>
+                        <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
                 <!-- if number of question is lesser than numbers of questions fetched from the database display this div -->

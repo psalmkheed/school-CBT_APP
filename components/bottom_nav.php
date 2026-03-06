@@ -6,6 +6,20 @@ $actionBtn = match($_SESSION['role']) {
     'student' => ['icon' => 'bx-book-open', 'id' => 'sideTest', 'color' => 'bg-blue-600'],
     default   => ['icon' => 'bx-plus', 'id' => 'homepage', 'color' => 'bg-gray-600']
 };
+// Determine Role-based news button
+$newsBtn = match ($_SESSION['role']) {
+    'admin' => ['icon' => 'bx-news', 'id' => 'createBlog', 'color' => 'bg-green-600'],
+    'staff' => ['icon' => 'bx-bar-chart', 'id' => 'sideResults', 'color' => 'bg-sky-600'],
+    'student' => ['icon' => 'bx-history', 'id' => 'sideExamHistory', 'color' => 'bg-blue-600'],
+    default => ['icon' => 'bx-plus', 'id' => 'homepage', 'color' => 'bg-gray-600']
+};
+// Determine Role-based news button
+$chatBtn = match ($_SESSION['role']) {
+    'admin' => (object) ['icon' => 'bx-envelope', 'id' => 'broadcast', 'color' => 'bg-green-600'],
+    'staff' => (object) ['icon' => 'bx-group', 'id' => 'sideStudents', 'color' => 'bg-sky-600'],
+    'student' => (object) ['icon' => 'bx-message-circle-detail', 'id' => 'sideChat', 'color' => 'bg-blue-600'],
+    default => (object) ['icon' => 'bx-envelope', 'id' => 'homepage', 'color' => 'bg-gray-600']
+};
 
 $themeClass = match($_SESSION['role']) {
     'admin'   => 'text-green-600',
@@ -27,24 +41,28 @@ $themeClass = match($_SESSION['role']) {
         </button>
 
         <!-- Message/Chat -->
-        <button onclick="$('#sideChat, #broadcast').first().click()" class="bn-btn flex flex-col items-center gap-1 group active:scale-95 transition-all" id="bn-chat">
+        <button onclick="$('#<?= $chatBtn->id ?>').click()"
+            class="bn-btn flex flex-col items-center gap-1 group active:scale-95 transition-all" id="bn-chat">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center group-hover:bg-gray-50 transition-colors">
-                <i class="bx bx-envelope text-2xl text-gray-400 bn-icon" data-solid="bxs-envelope" data-regular="bx-envelope"></i>
+                <i class="bx <?= $chatBtn->icon ?> text-2xl text-gray-400 bn-icon" data-solid="bxs-<?= $chatBtn->icon ?>"
+                    data-regular="bx-<?= $chatBtn->icon ?>"></i>
             </div>
         </button>
 
         <!-- Floating Action Button -->
         <div class="relative -top-7 z-[210]">
             <button onclick="$('#<?= $actionBtn['id'] ?>').click();" 
-                    class="w-14 h-14 rounded-2xl <?= $actionBtn['color'] ?> text-white flex items-center justify-center shadow-2xl active:scale-90 transition-all border-4 border-white">
+                    class="w-14 h-14 rounded-full <?= $actionBtn['color'] ?> text-white flex items-center justify-center shadow-2xl active:scale-90 transition-all border-4 border-white">
                 <i class="bx <?= $actionBtn['icon'] ?> text-2xl"></i>
             </button>
         </div>
 
         <!-- News/Blog -->
-        <button onclick="$('#createBlog, #sideStudy').first().click()" class="bn-btn flex flex-col items-center gap-1 group active:scale-95 transition-all" id="bn-news">
+        <button onclick="$('#<?= $newsBtn['id'] ?>').first().click()"
+            class="bn-btn flex flex-col items-center gap-1 group active:scale-95 transition-all" id="bn-news">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center group-hover:bg-gray-50 transition-colors">
-                <i class="bx bx-news text-2xl text-gray-400 bn-icon" data-solid="bxs-news" data-regular="bx-news"></i>
+                <i class="bx <?= $newsBtn['icon'] ?> text-2xl text-gray-400 bn-icon" data-solid="bxs-<?= $newsBtn['icon'] ?>"
+                    data-regular="bx-<?= $newsBtn['icon'] ?>"></i>
             </div>
         </button>
 

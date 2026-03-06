@@ -74,7 +74,7 @@ $total_exams = (int) $count_exams->fetchColumn();
                               <p class="text-green-100 text-sm font-medium mb-1">
                                     <?= date('l, F j, Y') ?>
                               </p>
-                              <h3 class="text-2xl md:text-3xl font-bold text-white mb-1">
+                              <h3 class="text-2xl md:text-3xl font-semibold text-white mb-1">
                                     Welcome back, <?= ucfirst($user->first_name) ?> 👋
                               </h3>
                               <p class="text-green-100 text-sm">
@@ -94,7 +94,7 @@ $total_exams = (int) $count_exams->fetchColumn();
                               </div>
                               <div>
                                     <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Students</p>
-                                    <h3 class="text-3xl md:text-4xl font-extrabold text-gray-800 leading-tight">
+                                    <h3 class="text-3xl md:text-4xl font-bold text-gray-800 leading-tight">
                                           <?= $total_students ?>
                                     </h3>
                               </div>
@@ -108,7 +108,7 @@ $total_exams = (int) $count_exams->fetchColumn();
                               </div>
                               <div>
                                     <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Exams</p>
-                                    <h3 class="text-3xl md:text-4xl font-extrabold text-gray-800 leading-tight">
+                                    <h3 class="text-3xl md:text-4xl font-bold text-gray-800 leading-tight">
                                           <?= $total_exams ?>
                                     </h3>
                               </div>
@@ -122,7 +122,7 @@ $total_exams = (int) $count_exams->fetchColumn();
                               </div>
                               <div>
                                     <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Messages</p>
-                                    <h3 class="text-3xl md:text-4xl font-extrabold text-gray-800 leading-tight">
+                                    <h3 class="text-3xl md:text-4xl font-bold text-gray-800 leading-tight">
                                           <?= $unread_messages ?>
                                     </h3>
                               </div>
@@ -139,7 +139,7 @@ $total_exams = (int) $count_exams->fetchColumn();
                                     <i class="bx-group text-2xl text-white"></i>
                               </div>
                               <div>
-                                    <h3 class="text-base font-bold text-gray-800 group-hover:text-red-600 transition">Manage Students</h3>
+                                    <h3 class="text-base font-semibold text-gray-800 group-hover:text-red-600 transition">Manage Students</h3>
                                     <p class="text-xs text-gray-400 mt-0.5">View and update student records for your class</p>
                               </div>
                         </div>
@@ -151,7 +151,7 @@ $total_exams = (int) $count_exams->fetchColumn();
                                     <i class="bx bxs-file-detail text-2xl text-white"></i>
                               </div>
                               <div>
-                                    <h3 class="text-base font-bold text-gray-800 group-hover:text-blue-600 transition">Manage Exams</h3>
+                                    <h3 class="text-base font-semibold text-gray-800 group-hover:text-blue-600 transition">Manage Exams</h3>
                                     <p class="text-xs text-gray-400 mt-0.5">Set questions and view exam status</p>
                               </div>
                         </div>
@@ -160,7 +160,7 @@ $total_exams = (int) $count_exams->fetchColumn();
                   <!-- Quick Actions Row -->
                   <div class="mb-6">
                         <h4 class="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-3">Quick Actions</h4>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
                               <button onclick="$('#sideStudents').click()"
                                     class="bg-white border border-gray-100 rounded-xl p-4 flex flex-col items-center gap-2 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group">
                                     <div class="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition">
@@ -182,6 +182,13 @@ $total_exams = (int) $count_exams->fetchColumn();
                                     </div>
                                     <span class="text-xs font-semibold text-gray-600">Results</span>
                               </button>
+                               <button onclick="openSupportModal()"
+                                    class="bg-white border border-gray-100 rounded-xl p-4 flex flex-col items-center gap-2 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group">
+                                    <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition">
+                                          <i class="bx bx-headphone-mic text-lg text-emerald-600"></i>
+                                    </div>
+                                    <span class="text-xs font-semibold text-gray-600">Support</span>
+                              </button>
                               <button onclick="$('#sideProfile').click()"
                                     class="bg-white border border-gray-100 rounded-xl p-4 flex flex-col items-center gap-2 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group">
                                     <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition">
@@ -199,7 +206,7 @@ $total_exams = (int) $count_exams->fetchColumn();
                                     <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                                           <i class="bx-bell text-blue-600"></i>
                                     </div>
-                                    <h4 class="text-sm font-bold text-gray-800">Recent Messages</h4>
+                                    <h4 class="text-sm font-semibold text-gray-800">Recent Messages</h4>
                               </div>
                               <?php if ($unread_messages > 0): ?>
                                     <span class="text-xs bg-red-100 text-red-600 font-bold px-2 py-0.5 rounded-full"><?= $unread_messages ?> unread</span>
@@ -236,6 +243,7 @@ $total_exams = (int) $count_exams->fetchColumn();
 </main>
 
 <?php require '../components/notification.php'; ?>
+<?php require '../components/support_modal.php'; ?>
 <?php require '../components/footer.php';?>
 
 <!-- greetings Modal -->
@@ -254,7 +262,7 @@ $total_exams = (int) $count_exams->fetchColumn();
                         <div class="w-16 h-16 rounded-full bg-sky-100 flex items-center justify-center mb-2">
                               <i class="bx-briefcase text-4xl text-sky-600"></i>
                         </div>
-                        <h3 class="text-2xl font-bold text-gray-800 text-center">Hello, Educator! 🎓</h3>
+                        <h3 class="text-2xl font-semibold text-gray-800 text-center">Hello, Educator! 🎓</h3>
                         <p class="text-sm font-semibold text-gray-400 uppercase tracking-widest"><?= strtoupper(explode(' ', $result->school_name ?? 'School')[0])?> Staff Portal</p>
                   </div>
                   

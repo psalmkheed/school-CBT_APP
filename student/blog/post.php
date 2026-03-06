@@ -21,7 +21,13 @@ if (isset($_GET['post_id'])) {
       }
 
 } else {
-      echo "404";
+      echo '<div class="relative flex items-center justify-center fixed h-screen w-full bg-black z-[99999]">
+      <h1 class="absolute text-[10rem] text-gray-900 font-black">401</h1>
+      <h1 class="animate-pulse text-3xl text-white font-bold"> Unauthorized Access </h1>
+      
+      
+      </div>';
+      exit;
 }
 
 ?>
@@ -31,8 +37,8 @@ if (isset($_GET['post_id'])) {
             </header>
             <div class="absolute top-4 left-4 md:top-6 md:left-6 z-50">
                   <button onclick="goHome()"
-                        class="size-12 rounded-full bg-black/20 backdrop-blur-md border border-white/30 flex items-center justify-center text-white hover:bg-black/40 transition-all shadow-xl cursor-pointer"
-                        title="Go back" data-tippy-content="Back to Dashboard">
+                        class="size-12 rounded-md bg-white backdrop-blur-md border border-white/30 flex items-center justify-center text-gray-400 hover:bg-gray-200 transition-all shadow-sm cursor-pointer"
+                        data-tippy-content="Back to Dashboard">
                         <i class="bx bx-arrow-left-stroke text-4xl"></i>
                   </button>
             </div>
@@ -40,9 +46,9 @@ if (isset($_GET['post_id'])) {
 
       <div class='max-w-5xl mx-auto px-6 md:px-12 mb-12 mt-10'>
             <div class="mb-8">
-                  <h1 class="text-3xl md:text-4xl text-green-700 font-extrabold mb-4 leading-tight"><?= $post->blog_title ?></h1>
+                  <h1 class="text-3xl md:text-4xl text-blue-700 font-extrabold mb-4 leading-tight"><?= $post->blog_title ?></h1>
                   <div class="flex items-center gap-4 mb-6">
-                        <span class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                        <span class="bg-red-100 text-red-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
                               <?= $post->blog_category ?>
                         </span>
                         <p class="text-sm text-gray-500 font-medium flex items-center gap-1">
