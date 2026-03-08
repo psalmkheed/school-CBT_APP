@@ -25,7 +25,7 @@ if ($stmt->fetch()) {
 }
 
 // Fetch questions
-$stmt = $conn->prepare("SELECT id, question_number, question_text, option_a, option_b, option_c, option_d, question_type FROM questions WHERE exam_id = :id ORDER BY question_number ASC");
+$stmt = $conn->prepare("SELECT id, question_number, question_text, option_a, option_b, option_c, option_d, question_type, question_image FROM questions WHERE exam_id = :id ORDER BY question_number ASC");
 $stmt->execute([':id' => $exam_id]);
 $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -97,7 +97,7 @@ recordActivity($conn, 'EXAM_START', "Student started exam: '{$exam->subject}' (I
                 <div class="absolute -bottom-10 -right-10 text-[120px] font-black text-gray-50/50 select-none rotate-[-15deg]" id="qNumWatermark">01</div>
                 
                 <div class="relative z-10">
-                    <div class="mb-10 min-h-[100px]">
+                    <div class="mb-10 min-h-[100px]" id="questionTextContainer">
                         <p class="text-[11px] font-black text-blue-500 uppercase tracking-[0.2em] mb-4">Question <span id="displayQN">1</span></p>
                         <h2 class="text-xl md:text-2xl font-bold text-gray-800 leading-relaxed" id="questionText">Loading question...</h2>
                     </div>
@@ -229,7 +229,22 @@ recordActivity($conn, 'EXAM_START', "Student started exam: '{$exam->subject}' (I
         const q = questions[currentIndex];
         $('#displayQN').text(currentIndex + 1);
         $('#qNumWatermark').text((currentIndex + 1).toString().padStart(2, '0'));
-        $('#questionText').html(q.question_text);
+        
+        let questionHtml = `<h2 class="text-xl md:text-2xl font-bold text-gray-800 leading-relaxed mb-6">${q.question_text}</h2>`;
+        
+        // Show Diagram if exists
+        if (q.question_image) {
+            questionHtml += `
+                <div class="mb-8 bg-gray-50 p-2 rounded-3xl border border-gray-100/50 inline-block max-w-full overflow-hidden">
+                    <img src="/school_app/uploads/questions/${q.question_image}" 
+                         class="max-h-[300px] md:max-h-[400px] w-auto rounded-2xl shadow-sm hover:scale-[1.02] cursor-zoom-in transition-transform" 
+                         alt="Question Diagram"
+                         onclick="window.open(this.src, '_blank')">
+                </div>
+            `;
+        }
+        
+        $('#questionTextContainer').html(questionHtml);
 
         const isFill = q.question_type === 'fill_blank';
         let html = '';

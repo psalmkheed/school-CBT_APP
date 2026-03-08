@@ -84,7 +84,7 @@ function getChatDateHeader($dateStr)
         <div class="flex-1 overflow-y-auto scrollbar-hide">
             <!-- Active Class Chat -->
             <div
-                class="flex items-center gap-3 px-4 py-3 bg-[#f0f2f5] cursor-pointer hover:bg-gray-100 transition relative">
+                class="flex items-center gap-3 px-4 py-3 bg-[#f0f2f5] cursor-pointer hover:bg-gray-100 transition relative chat-list-item">
                 <div class="absolute inset-y-0 left-0 w-1 bg-blue-600"></div>
                 <div
                     class="size-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-md flex-shrink-0">
@@ -102,7 +102,7 @@ function getChatDateHeader($dateStr)
 
             <!-- Support Chat (As a menu item) -->
             <div onclick="openSupportModal()"
-                class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50 transition">
+                class="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50 transition chat-list-item">
                 <div
                     class="size-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 flex-shrink-0">
                     <i class="bx bx-headphone-mic text-xl"></i>
@@ -215,7 +215,9 @@ function getChatDateHeader($dateStr)
     <!-- ── Messages Area ─────────────────────────────────────── -->
     <div id="chatMessages" class="flex-1 overflow-y-auto px-4 md:px-12 py-6 space-y-3 scroll-smooth relative z-10 custom-scrollbar">
 
-        <?php if (count($initial) === 0): ?>
+        <?php
+        $currentDate = '';
+        if (count($initial) === 0): ?>
             <div id="emptyState" class="flex flex-col items-center justify-center h-full text-center py-20">
                 <div class="size-20 bg-blue-50 rounded-[2rem] border border-blue-100 flex items-center justify-center mb-4">
                     <i class="bx bx-message-rounded-dots text-4xl text-blue-400"></i>
@@ -226,8 +228,7 @@ function getChatDateHeader($dateStr)
                 </p>
             </div>
         <?php else: ?>
-                <?php
-                $currentDate = '';
+                    <?php
                 foreach ($initial as $msg):
                 $isMine = $msg->sender_id == $user->id;
                 $name = htmlspecialchars($msg->first_name . ' ' . $msg->last_name);
@@ -272,14 +273,14 @@ function getChatDateHeader($dateStr)
                                                                                                                                                             ? 'bg-blue-600 text-white rounded-br-none shadow-blue-100'
                                                                                                                                                             : 'bg-white text-gray-800 border border-gray-100 rounded-bl-none' ?>">
                                 <?php if ($isMine): ?>
-                                    <button onclick="toggleMsgMenu(<?= $msg->id ?>)"
+                                                                                                    <button onclick="toggleMsgMenu(<?= $msg->id ?>, event)"
                                         class="absolute top-2 -left-8 size-6 bg-white border border-gray-100 rounded-full flex items-center justify-center text-gray-400 hover:text-blue-500 transition shadow-sm opacity-0 md:group-hover:opacity-100">
                                         <i class="bx bx-chevron-down"></i>
                                     </button>
                                     <div id="msgMenu_<?= $msg->id ?>"
                                         class="hidden absolute top-8 -left-28 w-28 bg-white border border-gray-100 rounded-xl shadow-lg z-50 py-1 flex-col items-start overflow-hidden origin-top-right">
                                         <button
-                                            onclick="editMsgUI(<?= $msg->id ?>, `<?= htmlspecialchars(str_replace('`', '\`', $msg->message), ENT_QUOTES) ?>`)"
+                                            onclick="editMsgUI(<?= $msg->id ?>, <?= htmlspecialchars(json_encode($msg->message), ENT_QUOTES | ENT_SUBSTITUTE) ?>)"
                                             class="w-full px-3 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50 hover:text-blue-600 flex items-center gap-2 text-left"><i
                                                 class="bx bx-edit text-base"></i> Edit</button>
                                         <button onclick="deleteMsg(<?= $msg->id ?>)"
@@ -521,7 +522,7 @@ function getChatDateHeader($dateStr)
             }
         }
 
-        const safeMsgText = msg.message ? msg.message.replace(/'/g, "\\'").replace(/"/g, '&quot;') : '';
+        const safeMsgText = JSON.stringify(msg.message || "");
         let msgBody = '';
         if (msg.is_deleted) {
             msgBody = `<div class="px-4 py-3 rounded-2xl text-sm font-medium leading-relaxed shadow-sm bg-gray-100 text-gray-500 border border-gray-200 italic ${isMine ? 'rounded-br-none' : 'rounded-bl-none'}"><i class="bx bx-block mr-1"></i> This message was deleted</div>`;
@@ -529,11 +530,11 @@ function getChatDateHeader($dateStr)
             let actionsHtml = '';
             if (isMine) {
                 actionsHtml = `
-                    <button onclick="toggleMsgMenu(${msg.id})" class="absolute top-2 -left-8 size-6 bg-white border border-gray-100 rounded-full flex items-center justify-center text-gray-400 hover:text-blue-500 transition shadow-sm opacity-0 md:group-hover:opacity-100">
+                    <button onclick="toggleMsgMenu(${msg.id}, event)" class="absolute top-2 -left-8 size-6 bg-white border border-gray-100 rounded-full flex items-center justify-center text-gray-400 hover:text-blue-500 transition shadow-sm opacity-0 md:group-hover:opacity-100">
                         <i class="bx bx-chevron-down"></i>
                     </button>
                     <div id="msgMenu_${msg.id}" class="hidden absolute top-8 -left-28 w-28 bg-white border border-gray-100 rounded-xl shadow-lg z-50 py-1 flex-col items-start overflow-hidden origin-top-right">
-                        <button onclick="editMsgUI(${msg.id}, '${safeMsgText}')" class="w-full px-3 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50 hover:text-blue-600 flex items-center gap-2 text-left"><i class="bx bx-edit text-base"></i> Edit</button>
+                        <button onclick='editMsgUI(${msg.id}, ${safeMsgText})' class="w-full px-3 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50 hover:text-blue-600 flex items-center gap-2 text-left"><i class="bx bx-edit text-base"></i> Edit</button>
                         <button onclick="deleteMsg(${msg.id})" class="w-full px-3 py-2 text-xs font-bold text-gray-600 hover:bg-gray-50 hover:text-red-500 flex items-center gap-2 text-left"><i class="bx bx-trash text-base"></i> Delete</button>
                     </div>`;
             }
@@ -556,8 +557,8 @@ function getChatDateHeader($dateStr)
             </div>`;
     }
 
-    window.toggleMsgMenu = function(id) {
-        event.stopPropagation();
+    window.toggleMsgMenu = function(id, e) {
+        if(e) e.stopPropagation();
         const menu = document.getElementById('msgMenu_' + id);
         if (menu) {
             document.querySelectorAll('[id^=msgMenu_]').forEach(m => {
@@ -587,13 +588,12 @@ function getChatDateHeader($dateStr)
                     if(res.success) {
                         const el = document.querySelector(`.chat-msg[data-id="${id}"]`);
                         if(el) {
+                            const isMine = el.classList.contains('flex-row-reverse');
                             // Instead of removing, replace with deleted placeholder
-                            el.outerHTML = `
-                            <div class="flex items-end gap-3 flex-row-reverse chat-msg animate-in slide-in-from-bottom-2" data-id="${id}">
-                                <div class="max-w-[85%] md:max-w-[72%] items-end flex flex-col gap-1 relative group">
-                                    <div class="px-4 py-3 rounded-2xl text-sm font-medium leading-relaxed shadow-sm bg-gray-100 text-gray-500 border border-gray-200 italic rounded-br-none"><i class="bx bx-block mr-1"></i> This message was deleted</div>
+                            el.innerHTML = `
+                                <div class="max-w-[85%] md:max-w-[72%] ${isMine ? 'items-end' : 'items-start'} flex flex-col gap-1 relative group">
+                                    <div class="px-4 py-3 rounded-2xl text-sm font-medium leading-relaxed shadow-sm bg-gray-100 text-gray-500 border border-gray-200 italic ${isMine ? 'rounded-br-none' : 'rounded-bl-none'}"><i class="bx bx-block mr-1"></i> This message was deleted</div>
                                 </div>
-                            </div>
                             `;
                         }
                     } else {

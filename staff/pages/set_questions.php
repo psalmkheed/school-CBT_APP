@@ -187,17 +187,44 @@ $total_questions = (int)$exam->num_quest;
                             </label>
                         </div>
 
-                        <!-- The actual textarea -->
+                        <!-- Question Textarea -->
                         <textarea name="question_text" id="question_text" required
                             class="w-full bg-gray-50 border border-gray-100 rounded-b-2xl rounded-t-none p-5 text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-blue-400 focus:bg-white transition-all min-h-[120px] placeholder:text-gray-300 font-mono text-sm"
                             placeholder="Type question here... select text then click B/I/x²/x₂, or click a symbol tab to insert characters."></textarea>
+
+                        <!-- ── Diagram / Shape Attachment ─────────────────── -->
+                        <div class="mt-4 p-4 border-2 border-dashed border-gray-100 rounded-2xl bg-gray-50/50">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center gap-2">
+                                    <i class="bx bx-shape-square text-blue-500 text-lg"></i>
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Diagram / Shape (Optional)</span>
+                                </div>
+                                <button type="button" onclick="$('#question_image_input').click()"
+                                    class="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:text-blue-700 cursor-pointer flex items-center gap-1 bg-white px-3 py-1.5 rounded-lg shadow-sm border border-blue-50">
+                                    <i class="bx bx-cloud-upload"></i> Upload Image
+                                </button>
+                                <input type="file" name="question_image" id="question_image_input" class="hidden" accept="image/*" onchange="previewDiagram(this)">
+                            </div>
+
+                            <!-- Image Preview Area -->
+                            <div id="diagramPreview" class="hidden relative rounded-xl overflow-hidden border border-gray-200 bg-white inline-block">
+                                <img src="" id="diagram_img" class="max-h-[200px] w-auto block">
+                                <button type="button" onclick="removeDiagram()"
+                                    class="absolute top-2 right-2 size-8 bg-red-500/80 hover:bg-red-600 text-white rounded-lg flex items-center justify-center transition-all cursor-pointer backdrop-blur-sm shadow-lg">
+                                    <i class="bx bx-trash"></i>
+                                </button>
+                                <input type="hidden" name="remove_existing_image" id="remove_existing_image" value="0">
+                            </div>
+                            
+                            <p id="diagramHint" class="text-[10px] text-gray-400 italic">For geometry, circuits, structures or graph. Supports JPG, PNG, WEBP.</p>
+                        </div>
 
                         <!-- Live Preview -->
                         <div id="questionPreview" class="hidden mt-2 p-4 bg-blue-50 border border-blue-100 rounded-2xl text-gray-800 font-medium text-sm leading-relaxed">
                             <p class="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-2">Preview</p>
                             <div id="previewContent"></div>
                         </div>
-                                            </div>
+                    </div>
 
                     <!-- Question Type Toggle -->
                     <div class="flex items-center gap-3">
@@ -260,12 +287,6 @@ $total_questions = (int)$exam->num_quest;
                                 placeholder="e.g. Weathering">
                             <p class="text-[10px] text-amber-400 mt-2">💡 Tip: Use the blank symbol <strong>___</strong> in the question text, e.g. <em>___ is the breaking down of rock into smaller particles.</em></p>
                         </div>
-                        <!-- Hidden fields to satisfy form validation for unused MCQ fields -->
-                        <input type="hidden" name="option_a" value="N/A">
-                        <input type="hidden" name="option_b" value="N/A">
-                        <input type="hidden" name="option_c" value="N/A">
-                        <input type="hidden" name="option_d" value="N/A">
-                        <input type="hidden" name="correct_answer" id="fill_correct_hidden" value="">
                     </div>
                 </div>
 
@@ -436,9 +457,23 @@ function loadQuestion(num) {
                 $("#fill_correct_answer").val(data.question.correct_answer);
                 $("#fill_correct_hidden").val(data.question.correct_answer);
             }
+
+            // Handle Question Image
+            if (data.question.question_image) {
+                $("#diagram_img").attr('src', '/school_app/uploads/questions/' + data.question.question_image);
+                $("#diagramPreview").removeClass("hidden");
+                $("#diagramHint").addClass("hidden");
+            } else {
+                $("#diagramPreview").addClass("hidden");
+                $("#diagramHint").removeClass("hidden");
+            }
         } else {
             $("#deleteBtn").addClass("hidden");
+            $("#diagramPreview").addClass("hidden");
+            $("#diagramHint").removeClass("hidden");
         }
+        $("#remove_existing_image").val("0");
+        $("#question_image_input").val(""); // clear file input
         updateProgress();
         
         // Update Next vs Finish button on last question
@@ -464,15 +499,6 @@ $('input[name="question_type"]').on('change', function() {
     const isFill = $(this).val() === 'fill_blank';
     $('#mcqOptions').toggleClass('hidden', isFill);
     $('#fillBlankOptions').toggleClass('hidden', !isFill);
-    if (!isFill) {
-        $('#fill_correct_answer').val('');
-        $('#fill_correct_hidden').val('');
-    }
-});
-
-// Keep hidden correct_answer in sync for fill-blank
-$('#fill_correct_answer').on('input', function() {
-    $('#fill_correct_hidden').val($(this).val().trim());
 });
 
 function deleteQuestion() {
@@ -515,12 +541,14 @@ function navigateQ(dir, saveFirst = false) {
 $("#questionForm").on("submit", function(e) {
     e.preventDefault();
     const btn = $("#saveBtn");
-    const formData = $(this).serialize();
+    const formData = new FormData(this); // Use FormData for file uploads
 
     $.ajax({
         url: '/school_app/staff/auth/save_question.php',
         method: 'POST',
         data: formData,
+        processData: false, // Required for FormData
+        contentType: false, // Required for FormData
         dataType: 'json',
         beforeSend: function() {
             btn.prop('disabled', true).html(`<div class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full mx-auto"></div>`);
@@ -544,6 +572,9 @@ $("#questionForm").on("submit", function(e) {
                 } else if (currentQuestion < totalQs) {
                     // Simple "Save Question" click while not on last, auto-next anyway
                     setTimeout(() => loadQuestion(currentQuestion + 1), 500);
+                } else {
+                    // Just stay on current question if saved but no navigation
+                    loadQuestion(currentQuestion);
                 }
             } else {
                 window.showToast(data.message, "error");
@@ -643,6 +674,26 @@ $(document).ready(function() {
             $('#questionPreview').addClass('hidden');
         }
     });
+
+    window.previewDiagram = function(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $('#diagram_img').attr('src', e.target.result);
+                $('#diagramPreview').removeClass('hidden');
+                $('#diagramHint').addClass('hidden');
+            }
+            reader.readAsDataURL(input.files[0]);
+            $('#remove_existing_image').val('0');
+        }
+    }
+
+    window.removeDiagram = function() {
+        $('#diagramPreview').addClass('hidden');
+        $('#diagramHint').removeClass('hidden');
+        $('#question_image_input').val('');
+        $('#remove_existing_image').val('1');
+    }
     // ── End Formatting Toolbar Logic ───────────────────────────────────
 });
 

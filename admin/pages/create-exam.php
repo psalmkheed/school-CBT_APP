@@ -237,6 +237,7 @@ $user_rows = $user_populate->fetchAll(PDO::FETCH_OBJ);
                                      class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition bg-white">
                                     <option value="" disabled selected>Select Exam Type</option>
                                     <option value="Mid-Term">Mid-Term</option>
+                                    <option value="Weekly Assessment">Weekly Assessment</option>
                                     <option value="Mock Examination">Mock Examination</option>
                                     <option value="Examination">Examination</option>
                                     <option value="Entrance Test">Entrance Test</option>

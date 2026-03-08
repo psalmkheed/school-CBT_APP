@@ -120,6 +120,7 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
             $("#studentBtn").addClass("bg-white shadow-sm").find("span").addClass("text-emerald-600");
             loadStudents();
             window.initTableSearch('userRecordSearch', 'userTableBody');
+            registerResetHandler();
 
             function initTooltips() {
                 if (window.tippy) {
@@ -168,6 +169,54 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
 
             // Expose globally for fetch scripts
             window.initTooltips = initTooltips;
+
+            function registerResetHandler() {
+                $(document).off('click', '.reset-btn').on('click', '.reset-btn', function() {
+                    const id = $(this).data('id');
+                    const name = $(this).data('name');
+                    
+                    Swal.fire({
+                        title: 'Reset Password',
+                        text: `Enter new password for ${name}`,
+                        input: 'password',
+                        inputAttributes: {
+                            autocapitalize: 'off',
+                            autocorrect: 'off'
+                        },
+                        showCancelButton: true,
+                        confirmButtonText: 'Reset Password',
+                        confirmButtonColor: '#10b981',
+                        showLoaderOnConfirm: true,
+                        preConfirm: (password) => {
+                            if (!password || password.length < 4) {
+                                Swal.showValidationMessage('Password must be at least 4 characters');
+                                return false;
+                            }
+                            return $.post('/school_app/admin/auth/reset_password.php', { id: id, password: password })
+                                .then(response => {
+                                    if (!response.success) {
+                                        throw new Error(response.message || 'Failed to reset password');
+                                    }
+                                    return response;
+                                })
+                                .catch(error => {
+                                    Swal.showValidationMessage(`Request failed: ${error}`);
+                                });
+                        },
+                        allowOutsideClick: () => !Swal.isLoading()
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Success',
+                                text: 'Password has been reset successfully.',
+                                timer: 2000,
+                                showConfirmButton: false
+                            });
+                        }
+                    });
+                });
+            }
       });
 </script>
 

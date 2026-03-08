@@ -71,6 +71,10 @@ $totalPages = ceil($totalRecords / $limit);
             </td>
             <td class="px-4 py-3 text-right">
                 <div class="flex items-center justify-end gap-2 text-gray-400 group-hover:text-gray-600 transition-colors">
+                    <button class="reset-btn p-2 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl transition cursor-pointer" data-id="<?= $row->id ?>" data-name="<?= htmlspecialchars($row->first_name . ' ' . $row->last_name) ?>"
+                        data-tippy-content="Reset Password">
+                        <i class="bx-key text-xl"></i>
+                    </button>
                     <button class="edit-btn p-2 hover:bg-sky-50 hover:text-sky-600 rounded-xl transition cursor-pointer" data-id="<?= $row->id ?>" data-tippy-content="Edit Student">
                         <i class="bx-pencil text-xl"></i>
                     </button>

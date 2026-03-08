@@ -5,7 +5,7 @@ window.showToast = function(message, type = 'success') {
       if (!toast) {
             toast = document.createElement('div');
             toast.id = 'global-toast';
-            toast.className = 'hidden fixed top-4 md:top-10 right-4 md:right-10 z-[999999] min-w-[200px] md:min-w-[300px] max-w-[calc(100%-2rem)] md:max-w-md px-5 py-3 rounded-2xl shadow-2xl text-sm font-semibold flex items-center gap-3 fade-in-left';
+            toast.className = 'hidden fixed top-4 md:top-2 right-2 md:right-5 z-[999999] min-w-[200px] md:min-w-[300px] max-w-[calc(100%-2rem)] md:max-w-md px-5 py-3 rounded-2xl shadow-2xl text-sm font-semibold flex items-center gap-3 fade-in-left';
             toast.innerHTML = '<span id="global-toast-icon" class="text-xl"></span><span id="global-toast-msg"></span>';
             document.body.appendChild(toast);
       }

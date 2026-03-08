@@ -17,6 +17,15 @@ if (empty($id) || empty($exam_id)) {
 }
 
 try {
+    // Get image before deleting record
+    $img_stmt = $conn->prepare("SELECT question_image FROM questions WHERE id = :id AND exam_id = :exam_id");
+    $img_stmt->execute([':id' => $id, ':exam_id' => $exam_id]);
+    $img = $img_stmt->fetchColumn();
+
+    if ($img && file_exists("../../uploads/questions/" . $img)) {
+        unlink("../../uploads/questions/" . $img);
+    }
+
     $stmt = $conn->prepare("DELETE FROM questions WHERE id = :id AND exam_id = :exam_id");
     $stmt->execute([':id' => $id, ':exam_id' => $exam_id]);
 

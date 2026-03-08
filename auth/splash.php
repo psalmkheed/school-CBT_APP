@@ -1,6 +1,5 @@
 <?php
 require '../connections/db.php';
-session_start();
 
 // Redirect based on existing session
 if (isset($_SESSION['user_id'])) {
@@ -570,15 +569,30 @@ $dev_year = date('Y');
         });
     }
 
-    const SPLASH_MS = 6200; 
+    const SPLASH_MS = 2800; 
     let redirectTimer = setTimeout(performRedirect, SPLASH_MS);
 
     function performRedirect() {
         const splash = document.getElementById('splash');
         if (splash) splash.classList.add('splash-exit');
-        setTimeout(function () {
-            window.location.replace('/school_app/auth/login.php');
-        }, 480);
+
+        // Check if the user has an active session before deciding where to go
+        fetch('/school_app/auth/check_login.php')
+            .then(r => r.json())
+            .then(data => {
+                let dest = '/school_app/auth/login.php'; // default fallback
+                if (data.loggedIn) {
+                    const role = (data.role || '').toLowerCase();
+                    if      (role === 'admin')   dest = '/school_app/admin/index.php';
+                    else if (role === 'staff')   dest = '/school_app/staff/index.php';
+                    else if (role === 'student') dest = '/school_app/student/index.php';
+                }
+                setTimeout(() => window.location.replace(dest), 480);
+            })
+            .catch(() => {
+                // Network error fallback — just go to login
+                setTimeout(() => window.location.replace('/school_app/auth/login.php'), 480);
+            });
     }
 
     if (installBtn) {

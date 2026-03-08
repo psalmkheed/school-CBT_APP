@@ -1,6 +1,5 @@
 <?php
 require '../connections/db.php';
-session_start();
 
 // redirect to configuration page if school settings is not yet configured
 // -------------------------------------------------------------//
@@ -23,8 +22,8 @@ if ($check_config->rowCount() < 1) {
 if (isset($_SESSION['user_id']) && $_SESSION['role'] == 'admin') {
       header("Location: /school_app/admin/index.php");
       exit();
-} elseif (isset($_SESSION['user_id']) && $_SESSION['role'] == 'teacher') {
-      header("Location: /school_app/teacher/index.php");
+} elseif (isset($_SESSION['user_id']) && $_SESSION['role'] == 'staff') {
+      header("Location: /school_app/staff/index.php");
       exit();
 } elseif (isset($_SESSION['user_id']) && $_SESSION['role'] == 'student') {
       header("Location: /school_app/student/index.php");

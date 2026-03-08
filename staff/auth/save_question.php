@@ -29,9 +29,77 @@ if ($q_type === 'fill_blank') {
     $correct = trim($_POST['correct_answer'] ?? '');
 }
 
-if (empty($exam_id) || empty($q_num) || empty($text) || empty($correct)) {
-    echo json_encode(['success' => false, 'message' => 'Please fill all required fields']);
+if (empty($exam_id)) {
+    echo json_encode(['success' => false, 'message' => 'Missing Exam ID']);
     exit;
+}
+if (empty($q_num)) {
+    echo json_encode(['success' => false, 'message' => 'Missing Question Number']);
+    exit;
+}
+if ($text === '') {
+    echo json_encode(['success' => false, 'message' => 'Question text cannot be empty']);
+    exit;
+}
+
+if ($q_type === 'mcq') {
+    if ($correct === '') {
+        echo json_encode(['success' => false, 'message' => 'Please select a correct answer (A, B, C, or D)']);
+        exit;
+    }
+    if ($a === '' || $b === '' || $c === '' || $d === '') {
+        echo json_encode(['success' => false, 'message' => 'Please fill in all MCQ options']);
+        exit;
+    }
+} else {
+    // Fill in the blank
+    if ($correct === '') {
+        echo json_encode(['success' => false, 'message' => 'Please provide the correct answer for the blank']);
+        exit;
+    }
+}
+
+// Handle File Upload
+$question_image = null;
+$remove_existing = (int) ($_POST['remove_existing_image'] ?? 0);
+
+// Fetch current image if updating
+$current_image = null;
+if (!empty($id)) {
+    $img_stmt = $conn->prepare("SELECT question_image FROM questions WHERE id = :id");
+    $img_stmt->execute([':id' => $id]);
+    $current_image = $img_stmt->fetchColumn();
+} elseif (!empty($exam_id) && !empty($q_num)) {
+    $img_stmt = $conn->prepare("SELECT question_image FROM questions WHERE exam_id = :exam_id AND question_number = :q_num");
+    $img_stmt->execute([':exam_id' => $exam_id, ':q_num' => $q_num]);
+    $current_image = $img_stmt->fetchColumn();
+}
+
+$question_image = $current_image;
+
+if ($remove_existing == 1) {
+    if ($current_image && file_exists("../../uploads/questions/" . $current_image)) {
+        unlink("../../uploads/questions/" . $current_image);
+    }
+    $question_image = null;
+}
+
+if (isset($_FILES['question_image']) && $_FILES['question_image']['error'] === UPLOAD_ERR_OK) {
+    $upload_dir = "../../uploads/questions/";
+    $file_ext = strtolower(pathinfo($_FILES['question_image']['name'], PATHINFO_EXTENSION));
+    $allowed_ext = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+
+    if (in_array($file_ext, $allowed_ext)) {
+        // Delete old image if it exists
+        if ($current_image && file_exists($upload_dir . $current_image)) {
+            unlink($upload_dir . $current_image);
+        }
+
+        $new_filename = "q_" . $exam_id . "_" . $q_num . "_" . time() . "." . $file_ext;
+        if (move_uploaded_file($_FILES['question_image']['tmp_name'], $upload_dir . $new_filename)) {
+            $question_image = $new_filename;
+        }
+    }
 }
 
 try {
@@ -44,7 +112,8 @@ try {
             option_c = :c,
             option_d = :d,
             correct_answer = :correct,
-            question_type = :qtype
+            question_type = :qtype,
+            question_image = :qimage
             WHERE id = :id AND exam_id = :exam_id");
         $stmt->execute([
             ':text' => $text,
@@ -54,6 +123,7 @@ try {
             ':d' => $d,
             ':correct' => $correct,
             ':qtype' => $q_type,
+            ':qimage' => $question_image,
             ':id' => $id,
             ':exam_id' => $exam_id
         ]);
@@ -61,7 +131,7 @@ try {
         // Double check if question number already exists for this exam
         $check = $conn->prepare("SELECT id FROM questions WHERE exam_id = :exam_id AND question_number = :q_num");
         $check->execute([':exam_id' => $exam_id, ':q_num' => $q_num]);
-        $existing = $check->fetch();
+        $existing = $check->fetch(PDO::FETCH_ASSOC);
 
         if ($existing) {
             $stmt = $conn->prepare("UPDATE questions SET 
@@ -71,7 +141,8 @@ try {
                 option_c = :c,
                 option_d = :d,
                 correct_answer = :correct,
-                question_type = :qtype
+                question_type = :qtype,
+                question_image = :qimage
                 WHERE id = :id");
             $stmt->execute([
                 ':text' => $text,
@@ -81,12 +152,13 @@ try {
                 ':d' => $d,
                 ':correct' => $correct,
                 ':qtype' => $q_type,
+                ':qimage' => $question_image,
                 ':id' => $existing['id']
             ]);
         } else {
             // Insert
-            $stmt = $conn->prepare("INSERT INTO questions (exam_id, question_number, question_text, option_a, option_b, option_c, option_d, correct_answer, question_type) 
-                VALUES (:exam_id, :q_num, :text, :a, :b, :c, :d, :correct, :qtype)");
+            $stmt = $conn->prepare("INSERT INTO questions (exam_id, question_number, question_text, option_a, option_b, option_c, option_d, correct_answer, question_type, question_image) 
+                VALUES (:exam_id, :q_num, :text, :a, :b, :c, :d, :correct, :qtype, :qimage)");
             $stmt->execute([
                 ':exam_id' => $exam_id,
                 ':q_num' => $q_num,
@@ -97,6 +169,7 @@ try {
                 ':d' => $d,
                 ':correct' => $correct,
                 ':qtype' => $q_type,
+                ':qimage' => $question_image,
             ]);
         }
     }

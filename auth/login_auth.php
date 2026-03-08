@@ -1,7 +1,8 @@
 <?php
-session_start();
-header('Content-Type: application/json');
+// ⚠️ db.php MUST be required first — it calls session_start()
+// session_start() must run before ANY output or headers
 require '../connections/db.php';
+header('Content-Type: application/json');
 
 if(isset($_SESSION['user_id'])) {
     $response["status"] = "success";
