@@ -4,7 +4,7 @@ require __DIR__ . '/../auth/check.php';
 header('Content-Type: application/json');
 
 // Admin only
-if ($user->role !== 'admin') {
+if (!in_array($user->role, ['admin', 'super'])) {
       echo json_encode(['success' => false, 'message' => 'Unauthorized']);
       exit;
 }

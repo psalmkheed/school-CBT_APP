@@ -29,7 +29,7 @@
                 <i class="bx bx-robot text-white text-xl"></i>
             </div>
             <div>
-                <h3 class="font-black text-white text-sm"><?= strtoupper($result->school_name) ?> EduBot</h3>
+                <h3 class="font-semibold text-white text-sm"><?= strtoupper($result->school_name) ?> EduBot</h3>
                 <div class="flex items-center gap-1.5">
                     <span class="size-2 rounded-full bg-green-400 animate-pulse"></span>
                     <span class="text-white/70 text-[10px] font-semibold">AI Support · Always Online</span>
@@ -172,7 +172,7 @@ function sendEduBot() {
     input.disabled = true;
 
     $.ajax({
-        url: '/school_app/auth/ai_support.php',
+        url: BASE_URL + 'auth/ai_support.php',
         type: 'POST',
         data: { message: msg },
         dataType: 'json',
@@ -209,7 +209,7 @@ function clearEduBot() {
     }
     document.getElementById('eduBotQuickPrompts').classList.remove('hidden');
     // Clear server-side history via a flag
-    $.post('/school_app/auth/ai_support.php', { message: '__clear__' });
+    $.post(BASE_URL + 'auth/ai_support.php', { message: '__clear__' });
 }
 
 function escHtml(str) {

@@ -8,13 +8,18 @@ if ($page < 1) $page = 1;
 $offset = ($page - 1) * $limit;
 
 /* FETCH DATA */
-$stmt = $conn->prepare("
-    SELECT * FROM users 
-    WHERE role = 'student' 
-    ORDER BY first_name ASC 
-    LIMIT :limit OFFSET :offset
-");
+$classFilter = isset($_POST['class']) ? trim($_POST['class']) : '';
 
+$sql = "SELECT * FROM users WHERE role = 'student'";
+if (!empty($classFilter)) {
+    $sql .= " AND class = :class";
+}
+$sql .= " ORDER BY first_name ASC LIMIT :limit OFFSET :offset";
+
+$stmt = $conn->prepare($sql);
+if (!empty($classFilter)) {
+    $stmt->bindValue(':class', $classFilter);
+}
 $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
 $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
@@ -22,13 +27,23 @@ $stmt->execute();
 $students = $stmt->fetchAll(PDO::FETCH_OBJ);
 
 /* COUNT TOTAL */
-$totalRecords = $conn->query("SELECT COUNT(*) FROM users WHERE role = 'student'")->fetchColumn();
+$countSql = "SELECT COUNT(*) FROM users WHERE role = 'student'";
+if (!empty($classFilter)) {
+    $countSql .= " AND class = :class";
+}
+$countStmt = $conn->prepare($countSql);
+if (!empty($classFilter)) {
+    $countStmt->execute([':class' => $classFilter]);
+} else {
+    $countStmt->execute();
+}
+$totalRecords = $countStmt->fetchColumn();
 $totalPages = ceil($totalRecords / $limit);
 ?>
 
 <?php if (count($students) > 0): ?>
     <?php $i = $offset; foreach ($students as $row): 
-        $initials = strtoupper(substr($row->first_name, 0, 1) . substr($row->last_name, 0, 1));
+        $initials = strtoupper(substr($row->first_name, 0, 1) . substr($row->surname, 0, 1));
         $colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500', 'bg-indigo-500'];
         $randomColor = $colors[$row->id % count($colors)];
     ?>
@@ -36,20 +51,20 @@ $totalPages = ceil($totalRecords / $limit);
             <td class="px-4 py-3">
                 <div class="flex items-center gap-3">
                     <?php if (!empty($row->profile_photo)): ?>
-                        <img src="/school_app/uploads/profile_photos/<?= $row->profile_photo ?>" class="w-10 h-10 rounded-full object-cover shadow-sm ring-2 ring-white">
+                        <img src="<?= $base ?>uploads/profile_photos/<?= $row->profile_photo ?>" class="w-10 h-10 rounded-full object-cover shadow-sm ring-2 ring-white">
                     <?php else: ?>
                         <div class="w-10 h-10 rounded-full <?= $randomColor ?> flex items-center justify-center text-white text-xs font-bold shadow-sm ring-2 ring-white">
                             <?= $initials ?>
                         </div>
                     <?php endif; ?>
                     <div>
-                        <p class="student-fullname text-sm font-bold text-gray-800"><?= htmlspecialchars($row->first_name . ' ' . $row->last_name) ?></p>
+                        <p class="student-fullname text-sm font-bold text-gray-800"><?= htmlspecialchars(ucfirst($row->first_name) . ' ' . ucfirst($row->surname)) ?></p>
                         <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-tight"><?= htmlspecialchars($row->user_id) ?></p>
                     </div>
                 </div>
             </td>
             <td class="px-4 py-3">
-                <span class="px-3 py-1 bg-gray-100 rounded-lg text-[10px] font-mono font-black text-gray-500 uppercase">
+                <span class="px-3 py-1 bg-gray-100 rounded-lg text-[10px] font-mono font-semibold text-gray-500 uppercase">
                     <?= htmlspecialchars($row->user_id) ?>
                 </span>
             </td>
@@ -71,7 +86,7 @@ $totalPages = ceil($totalRecords / $limit);
             </td>
             <td class="px-4 py-3 text-right">
                 <div class="flex items-center justify-end gap-2 text-gray-400 group-hover:text-gray-600 transition-colors">
-                    <button class="reset-btn p-2 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl transition cursor-pointer" data-id="<?= $row->id ?>" data-name="<?= htmlspecialchars($row->first_name . ' ' . $row->last_name) ?>"
+                    <button class="reset-btn p-2 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl transition cursor-pointer" data-id="<?= $row->id ?>" data-name="<?= htmlspecialchars($row->first_name . ' ' . $row->surname) ?>"
                         data-tippy-content="Reset Password">
                         <i class="bx-key text-xl"></i>
                     </button>

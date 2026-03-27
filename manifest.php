@@ -7,30 +7,43 @@ $stmt->execute();
 $config = $stmt->fetch(PDO::FETCH_OBJ);
 
 $school_name = $config->school_name ?? 'School Portal';
-$short_name = explode(' ', $school_name)[0];
-$logo = $config->school_logo ?? '';
-$primary_color = $config->school_primary ?? '#0084D1';
-$secondary_color = $config->school_secondary ?? '#0084D1';
+$short_name = explode(' ', $school_name)[0] ?? 'Portal';
+$theme_color = $config->pwa_theme_color ?? ($config->school_primary ?? '#0084D1');
+$bg_color = $config->pwa_bg_color ?? '#ffffff';
+$display = $config->pwa_display ?? 'standalone';
+
+// Handle icon logic
+$pwa_icon = '';
+if (!empty($config->pwa_icon)) {
+    $pwa_icon = ltrim($config->pwa_icon, '/');
+} else {
+    // fallback to school_logo if missing
+    $fallback = $config->school_logo ?? '';
+    // Strip leading slash for relative asset embedding
+    $pwa_icon = ltrim($fallback, '/');
+}
+
+$base_path = parse_url(APP_URL, PHP_URL_PATH) ?: '/';
 
 $manifest = [
     "name" => $school_name,
     "short_name" => $short_name,
-    "start_url" => "/school_app/index.php",
-    "scope" => "/school_app/",
-    "display" => "fullscreen",
-    "background_color" => $primary_color,
-    "theme_color" => $primary_color,
-    "description" => "Complete School Management and CBT Portal",
+    "start_url" => rtrim($base_path, '/') . "/index.php",
+    "scope" => rtrim($base_path, '/') . "/",
+    "display" => $display,
+    "background_color" => $bg_color,
+    "theme_color" => $theme_color,
+    "description" => $school_name . " Application Portal",
     "orientation" => "portrait",
     "icons" => [
         [
-            "src" => "/school_app/uploads/school_logo/" . $logo,
+            "src" => rtrim($base_path, '/') . "/" . $pwa_icon,
             "sizes" => "192x192",
             "type" => "image/png",
             "purpose" => "any maskable"
         ],
         [
-            "src" => "/school_app/uploads/school_logo/" . $logo,
+            "src" => rtrim($base_path, '/') . "/" . $pwa_icon,
             "sizes" => "512x512",
             "type" => "image/png",
             "purpose" => "any maskable"

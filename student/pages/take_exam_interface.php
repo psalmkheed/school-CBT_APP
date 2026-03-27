@@ -53,32 +53,32 @@ recordActivity($conn, 'EXAM_START', "Student started exam: '{$exam->subject}' (I
 
 <div class="fixed inset-0 bg-white z-[900] flex flex-col fadeIn">
     <!-- Header / Status Bar -->
-    <div class="h-20 bg-white border-b border-gray-100 px-4 md:px-8 flex items-center justify-between shrink-0 shadow-sm">
-        <div class="flex items-center gap-4">
+    <div class="h-16 bg-white border-b border-gray-50 px-4 md:px-8 flex items-center justify-between shrink-0 shadow-sm relative z-20">
+        <div class="flex items-center gap-3">
             <div class="hidden md:flex flex-col">
-                <h4 class="text-sm font-black text-gray-800 uppercase tracking-tight"><?= htmlspecialchars($exam->subject) ?></h4>
-                <p class="text-[10px] text-gray-400 font-bold uppercase"><?= htmlspecialchars($exam->exam_type) ?></p>
+                <h4 class="text-xs font-semibold text-gray-800 uppercase tracking-tighter"><?= htmlspecialchars($exam->subject) ?></h4>
+                <p class="text-[9px] text-gray-400 font-bold uppercase"><?= htmlspecialchars($exam->exam_type) ?></p>
             </div>
-            <div class="h-10 w-[1px] bg-gray-100 hidden md:block"></div>
-            <div class="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-2xl border border-blue-100">
-                <i class="bx bx-list-ol text-blue-600 font-bold"></i>
-                <span class="text-sm font-black text-blue-600" id="progressText">Q1 of <?= count($questions) ?></span>
+            <div class="h-8 w-[1px] bg-gray-100 hidden md:block"></div>
+            <div class="flex items-center gap-2 bg-blue-50/50 px-3 py-1.5 rounded-xl border border-blue-100/50">
+                <i class="bx bx-list-ol text-blue-600 text-xs"></i>
+                <span class="text-[11px] font-semibold text-blue-600 uppercase" id="progressText">Q1 of <?= count($questions) ?></span>
             </div>
         </div>
 
         <div class="flex items-center gap-3">
-            <div class="flex items-center gap-2 bg-red-50 px-5 py-2.5 rounded-2xl border border-red-100 shadow-sm animate-pulse" id="timerBadge">
-                <i class="bx bx-timer text-red-600 font-bold text-lg"></i>
-                <span class="text-lg font-black text-red-600 tabular-nums" id="examTimer">--:--</span>
+            <div class="flex items-center gap-2 bg-red-50/50 px-3 py-2 rounded-xl border border-red-100/30" id="timerBadge">
+                <i class="bx bx-timer text-red-600 font-bold text-base animate-pulse"></i>
+                <span class="text-base font-semibold text-red-600 tabular-nums tracking-tighter" id="examTimer">--:--</span>
             </div>
-            <button onclick="confirmSubmit()" class="hidden md:flex items-center gap-2 px-6 py-2.5 bg-green-600 text-white rounded-2xl font-black text-sm hover:bg-green-700 transition-all shadow-lg shadow-green-100 cursor-pointer">
-                <i class="bx bx-check-circle"></i> Submit
-            </button>
             <!-- Calculator Toggle -->
             <button id="calcToggleBtn" onclick="toggleCalculator()"
-                class="size-10 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-500 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all cursor-pointer shadow-sm"
+                class="size-9 rounded-xl bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-200 transition-all cursor-pointer shadow-sm"
                 title="Calculator">
-                <i class="bx bx-calculator text-xl"></i>
+                <i class="bx bx-calculator text-lg"></i>
+            </button>
+            <button onclick="confirmSubmit()" class="hidden md:flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-xl font-bold text-xs hover:bg-green-700 transition-all shadow-md shadow-green-100 cursor-pointer uppercase tracking-wider">
+                <i class="bx bx-check-circle"></i> Submit
             </button>
         </div>
     </div>
@@ -89,23 +89,83 @@ recordActivity($conn, 'EXAM_START', "Student started exam: '{$exam->subject}' (I
     </div>
 
     <!-- Main Question Area -->
-    <div class="flex-1 overflow-y-auto bg-gray-50/30 md:p-12 p-6 flex items-center justify-center">
-        <div class="max-w-3xl w-full mt-6 md:mt-0" id="questionContainer">
-            <!-- Question content injected by JS -->
-            <div class="bg-white rounded-[3rem] p-8 md:p-12 shadow-2xl shadow-gray-200/50 border border-white relative overflow-hidden">
-                <!-- Watermark -->
-                <div class="absolute -bottom-10 -right-10 text-[120px] font-black text-gray-50/50 select-none rotate-[-15deg]" id="qNumWatermark">01</div>
-                
-                <div class="relative z-10">
-                    <div class="mb-10 min-h-[100px]" id="questionTextContainer">
-                        <p class="text-[11px] font-black text-blue-500 uppercase tracking-[0.2em] mb-4">Question <span id="displayQN">1</span></p>
-                        <h2 class="text-xl md:text-2xl font-bold text-gray-800 leading-relaxed" id="questionText">Loading question...</h2>
-                    </div>
+    <div class="flex-1 flex overflow-hidden bg-gray-50/30">
+        
+        <!-- Left: Current Question Area -->
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 flex justify-center relative scrollbar-thin scrollbar-thumb-gray-200">
+            <div class="max-w-3xl w-full h-fit py-4" id="questionContainer">
+                <!-- Question content injected by JS -->
+                <div class="bg-white rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-gray-200/50 border border-white relative overflow-hidden flex flex-col fadeIn">
+                    <!-- Watermark -->
+                    <div class="absolute -bottom-10 -right-10 text-[120px] font-semibold text-gray-50/50 select-none rotate-[-15deg] z-0 pointer-events-none" id="qNumWatermark">01</div>
+                    
+                    <div class="relative z-10 flex flex-col">
+                        <div class="mb-10" id="questionTextContainer">
+                            <p class="text-[11px] font-semibold text-blue-500 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                                <span class="size-2 rounded-full bg-blue-500 animate-pulse"></span>
+                                Question <span id="displayQN">1</span>
+                            </p>
+                            <!-- Question Text and Image Injected here -->
+                        </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="optionsGrid">
-                        <!-- Options injected by JS -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="optionsGrid">
+                            <!-- Options injected by JS -->
+                        </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Right: Question Navigator (Desktop only) -->
+        <div class="hidden lg:flex w-80 bg-white border-l border-gray-100 flex-col shrink-0 relative z-20">
+            <div class="p-6 border-b border-gray-50 bg-gray-50/30">
+                <h5 class="text-xs font-semibold text-gray-800 uppercase tracking-widest flex items-center gap-2">
+                    <i class="bx bx-grid-alt text-blue-600"></i>
+                    Question Navigator
+                </h5>
+                <p class="text-[10px] text-gray-400 font-bold uppercase mt-1">Jump to any question</p>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto p-6 scrollbar-thin">
+                <div class="grid grid-cols-5 gap-2" id="navigatorGrid">
+                    <!-- Numbers injected by JS -->
+                </div>
+            </div>
+
+            <div class="p-6 border-t border-gray-50 bg-gray-50/30">
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3">
+                        <div class="size-3 rounded shadow-sm bg-green-500"></div>
+                        <span class="text-[10px] font-semibold text-gray-500 uppercase">Answered</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="size-3 rounded shadow-sm bg-blue-600"></div>
+                        <span class="text-[10px] font-semibold text-gray-500 uppercase">Current</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="size-3 rounded shadow-sm bg-gray-200"></div>
+                        <span class="text-[10px] font-semibold text-gray-500 uppercase">Not Attempted</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Navigator Toggle (Small screen only) -->
+    <button onclick="toggleMobileNav()" class="lg:hidden fixed right-6 bottom-24 size-14 rounded-full bg-blue-600 text-white shadow-xl shadow-blue-200 z-[950] flex items-center justify-center animate-bounce">
+        <i class="bx bx-grid-alt text-2xl"></i>
+    </button>
+
+    <!-- Mobile Navigator Overlay -->
+    <div id="mobileNavOverlay" class="hidden fixed inset-0 z-[1000] p-6 flex flex-col">
+        <div class="absolute inset-0 bg-gray-900/80 backdrop-blur-md" onclick="toggleMobileNav()"></div>
+        <div class="relative bg-white w-full max-h-[80vh] rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col fadeIn mt-auto">
+            <div class="p-6 border-b border-gray-50 flex items-center justify-between">
+                <h5 class="text-xs font-semibold text-gray-800 uppercase tracking-widest">Jump to Question</h5>
+                <button onclick="toggleMobileNav()" class="size-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-400"><i class="bx bx-x text-xl"></i></button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-6 scrollbar-thin">
+                <div class="grid grid-cols-5 gap-3" id="mobileNavigatorGrid"></div>
             </div>
         </div>
     </div>
@@ -120,7 +180,7 @@ recordActivity($conn, 'EXAM_START', "Student started exam: '{$exam->subject}' (I
             class="flex items-center justify-between bg-gray-900 px-4 py-2.5 cursor-grab active:cursor-grabbing">
             <div class="flex items-center gap-2">
                 <i class="bx bx-calculator text-white text-lg"></i>
-                <span class="text-white font-black text-sm tracking-wide">Calculator</span>
+                <span class="text-white font-semibold text-sm tracking-wide">Calculator</span>
             </div>
             <button onclick="toggleCalculator()"
                 class="size-7 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors cursor-pointer">
@@ -134,7 +194,7 @@ recordActivity($conn, 'EXAM_START', "Student started exam: '{$exam->subject}' (I
             <div id="calcHistory" class="text-right text-gray-400 text-xs font-medium min-h-[18px] mb-1 tracking-wider overflow-hidden text-ellipsis whitespace-nowrap"></div>
             <!-- Main display -->
             <div id="calcDisplay"
-                class="text-right text-white font-black text-3xl tracking-tight leading-none overflow-hidden text-ellipsis whitespace-nowrap">0</div>
+                class="text-right text-white font-semibold text-3xl tracking-tight leading-none overflow-hidden text-ellipsis whitespace-nowrap">0</div>
         </div>
 
         <!-- Buttons -->
@@ -166,7 +226,7 @@ recordActivity($conn, 'EXAM_START', "Student started exam: '{$exam->subject}' (I
                 'calc-fn'    => 'bg-gray-600 hover:bg-gray-500 text-white',
                 'calc-mem'   => 'bg-gray-700 hover:bg-gray-600 text-blue-300 text-xs',
                 'calc-clear' => 'bg-red-500 hover:bg-red-400 text-white',
-                'calc-eq'    => 'bg-green-500 hover:bg-green-400 text-white font-black text-xl',
+                'calc-eq'    => 'bg-green-500 hover:bg-green-400 text-white font-semibold text-xl',
             ];
             foreach($calcBtns as [$label, $classes, $title]):
                 // Determine colour from primary class
@@ -187,19 +247,19 @@ recordActivity($conn, 'EXAM_START', "Student started exam: '{$exam->subject}' (I
     <!-- ── End Calculator ────────────────────────────────────────────── -->
 
 
-    <div class="h-24 bg-white border-t border-gray-100 px-6 md:px-12 flex items-center justify-between shrink-0 shadow-[0_-10px_20px_rgba(0,0,0,0.02)]">
-        <button id="prevBtn" onclick="prevQuestion()" class="flex items-center gap-3 px-8 py-4 bg-gray-50 text-gray-400 rounded-3xl font-black text-sm transition-all border border-gray-100 hover:bg-white hover:text-blue-600 hover:border-blue-200 disabled:opacity-50 disabled:cursor-not-allowed group">
-            <i class="bx bx-arrow-left text-xl group-hover:-translate-x-1 transition-transform"></i> Previous
+    <div class="h-20 bg-white border-t border-gray-50 px-6 md:px-12 flex items-center justify-between shrink-0 shadow-lg relative z-20">
+        <button id="prevBtn" onclick="prevQuestion()" class="flex items-center gap-2 px-6 py-3.5 bg-gray-50 text-gray-400 rounded-2xl font-bold text-xs transition-all border border-gray-100 hover:bg-white hover:text-blue-600 hover:border-blue-200 disabled:opacity-50 disabled:cursor-not-allowed group uppercase tracking-widest">
+            <i class="bx bx-chevron-left text-xl group-hover:-translate-x-1 transition-transform"></i> Prev
         </button>
         
-        <div class="hidden lg:flex items-center gap-2 overflow-x-auto max-w-[40%] px-4" id="paginationDots">
+        <div class="hidden lg:flex items-center gap-1.5 overflow-x-auto max-w-[40%] px-4" id="paginationDots">
             <!-- Dots added by JS -->
         </div>
 
-        <button id="nextBtn" onclick="nextQuestion()" class="flex items-center gap-3 px-10 py-4 bg-blue-600 text-white rounded-3xl font-black text-sm transition-all hover:bg-blue-700 hover:scale-105 shadow-xl shadow-blue-100 group">
-            Next <i class="bx bx-arrow-right text-xl group-hover:translate-x-1 transition-transform"></i>
+        <button id="nextBtn" onclick="nextQuestion()" class="flex items-center gap-2 px-8 py-3.5 bg-blue-600 text-white rounded-2xl font-bold text-xs transition-all hover:bg-blue-700 hover:translate-y-[-2px] shadow-lg shadow-blue-100 group uppercase tracking-widest">
+            Next <i class="bx bx-chevron-right text-xl group-hover:translate-x-1 transition-transform"></i>
         </button>
-        <button id="finalSubmitBtn" onclick="confirmSubmit()" class="hidden flex items-center gap-3 md:px-10 px-3 py-4 bg-green-600 text-white rounded-3xl font-black text-sm transition-all hover:bg-green-700 hover:scale-105 shadow-xl shadow-green-100 group">
+        <button id="finalSubmitBtn" onclick="confirmSubmit()" class="hidden flex items-center gap-2 px-8 py-3.5 bg-green-600 text-white rounded-2xl font-bold text-xs transition-all hover:bg-green-700 hover:translate-y-[-2px] shadow-lg shadow-green-100 group uppercase tracking-widest">
             Submit Exam <i class="bx bx-check-circle text-xl"></i>
         </button>
     </div>
@@ -213,15 +273,20 @@ recordActivity($conn, 'EXAM_START', "Student started exam: '{$exam->subject}' (I
     let currentIndex = 0;
     let answers = {};
     // Restore timer from localStorage so it survives refresh
-    let saved = parseInt(localStorage.getItem(TIMER_KEY));
-    let timeLeft = (!isNaN(saved) && saved > 0 && saved <= examDuration) ? saved : examDuration;
+    let saved = null;
+    try {
+        saved = parseInt(localStorage.getItem(TIMER_KEY));
+    } catch (e) {
+        console.warn('Storage blocked by tracking prevention.');
+    }
+    let timeLeft = (!isNaN(saved) && saved !== null && saved > 0 && saved <= examDuration) ? saved : examDuration;
     let timerInterval;
 
     function init() {
         if (questions.length === 0) return;
         renderQuestion();
         startTimer();
-        createPaginationDots();
+        createNavigator();
         updateProgress();
     }
 
@@ -230,14 +295,14 @@ recordActivity($conn, 'EXAM_START', "Student started exam: '{$exam->subject}' (I
         $('#displayQN').text(currentIndex + 1);
         $('#qNumWatermark').text((currentIndex + 1).toString().padStart(2, '0'));
         
-        let questionHtml = `<h2 class="text-xl md:text-2xl font-bold text-gray-800 leading-relaxed mb-6">${q.question_text}</h2>`;
+        let questionHtml = `<h2 class="text-lg md:text-xl font-bold text-gray-800 leading-relaxed mb-6" id="questionText">${q.question_text}</h2>`;
         
         // Show Diagram if exists
         if (q.question_image) {
             questionHtml += `
-                <div class="mb-8 bg-gray-50 p-2 rounded-3xl border border-gray-100/50 inline-block max-w-full overflow-hidden">
-                    <img src="/school_app/uploads/questions/${q.question_image}" 
-                         class="max-h-[300px] md:max-h-[400px] w-auto rounded-2xl shadow-sm hover:scale-[1.02] cursor-zoom-in transition-transform" 
+                <div class="mb-8 bg-gray-50/50 p-2 rounded-3xl border border-gray-100/50 inline-block max-w-full overflow-hidden">
+                    <img src="../uploads/questions/${q.question_image}" 
+                         class="max-h-[350px] md:max-h-[450px] w-auto rounded-2xl shadow-sm hover:scale-[1.02] cursor-zoom-in transition-transform" 
                          alt="Question Diagram"
                          onclick="window.open(this.src, '_blank')">
                 </div>
@@ -256,7 +321,7 @@ recordActivity($conn, 'EXAM_START', "Student started exam: '{$exam->subject}' (I
                 <div class="col-span-2 mt-2">
                     <div class="flex items-center gap-2 mb-4">
                         <div class="px-3 py-1.5 bg-amber-100 rounded-xl">
-                            <span class="text-[10px] font-black text-amber-600 uppercase tracking-widest">✏️ Fill in the Blank</span>
+                            <span class="text-[10px] font-semibold text-amber-600 uppercase tracking-widest">✏️ Fill in the Blank</span>
                         </div>
                     </div>
                     <input type="text" id="fillInput"
@@ -267,7 +332,6 @@ recordActivity($conn, 'EXAM_START', "Student started exam: '{$exam->subject}' (I
                         autocomplete="off" autocorrect="off" spellcheck="false">
                     <p class="text-xs text-gray-400 font-medium mt-3 text-center">Type your answer in the box above</p>
                 </div>`;
-            // Use grid-cols-1 for fill blank
             $('#optionsGrid').removeClass('md:grid-cols-2').addClass('grid-cols-1');
         } else {
             // ── MCQ Options ──────────────────────────────────────────────
@@ -283,11 +347,11 @@ recordActivity($conn, 'EXAM_START', "Student started exam: '{$exam->subject}' (I
                     <div class="option-item flex items-center gap-4 p-5 rounded-[2rem] border-2 cursor-pointer transition-all duration-300 group
                         ${isSelected ? 'border-green-500 bg-green-50 shadow-lg shadow-green-100' : 'border-gray-50 bg-gray-50/50 hover:border-blue-200 hover:bg-blue-50/30'}"
                         onclick="selectAnswer('${q.id}', '${opt.key}')">
-                        <div class="size-10 shrink-0 rounded-2xl flex items-center justify-center font-black text-sm transition-all
+                        <div class="size-10 shrink-0 rounded-2xl flex items-center justify-center font-semibold text-sm transition-all
                             ${isSelected ? 'bg-green-600 text-white shadow-md' : 'bg-white text-gray-400 border border-gray-100 group-hover:border-blue-300 group-hover:text-blue-500 shadow-sm'}">
                             ${opt.key}
                         </div>
-                        <span class="text-sm font-bold ${isSelected ? 'text-green-800' : 'text-gray-600'}">
+                        <span class="text-xs md:text-sm font-bold ${isSelected ? 'text-green-800' : 'text-gray-600'}">
                             ${opt.text}
                         </span>
                         ${isSelected ? '<i class="bx bx-check-circle text-green-600 ml-auto text-2xl fade-in-scale"></i>' : ''}
@@ -311,7 +375,7 @@ recordActivity($conn, 'EXAM_START', "Student started exam: '{$exam->subject}' (I
             $('#nextBtn').removeClass('hidden');
             $('#finalSubmitBtn').addClass('hidden');
         }
-        updateDots();
+        updateNavigator();
     }
 
     window.selectAnswer = function(qId, option) {
@@ -346,15 +410,33 @@ recordActivity($conn, 'EXAM_START', "Student started exam: '{$exam->subject}' (I
         }
     };
 
+    window.jumpToQuestion = function(idx) {
+        if (idx >= 0 && idx < questions.length) {
+            currentIndex = idx;
+            renderQuestion();
+            updateProgress();
+            $('#mobileNavOverlay').addClass('hidden');
+        }
+    };
+
+    window.toggleMobileNav = function() {
+        $('#mobileNavOverlay').toggleClass('hidden');
+    };
+
     function startTimer() {
         updateTimerDisplay();
         timerInterval = setInterval(() => {
             timeLeft--;
-            localStorage.setItem(TIMER_KEY, timeLeft); // persist across refresh
+            try {
+                localStorage.setItem(TIMER_KEY, timeLeft); // persist across refresh
+            } catch (e) {}
+            
             updateTimerDisplay();
             if (timeLeft <= 0) {
                 clearInterval(timerInterval);
-                localStorage.removeItem(TIMER_KEY);
+                try {
+                    localStorage.removeItem(TIMER_KEY);
+                } catch (e) {}
                 autoSubmit();
             }
         }, 1000);
@@ -378,30 +460,41 @@ recordActivity($conn, 'EXAM_START', "Student started exam: '{$exam->subject}' (I
         $('#progressText').text(`Q${currentIndex + 1} of ${questions.length}`);
     }
 
-    function createPaginationDots() {
+    function createNavigator() {
         let html = '';
         questions.forEach((_, i) => {
-            html += `<div class="size-2 rounded-full bg-gray-200 transition-all duration-300" id="dot-${i}"></div>`;
+            html += `<button onclick="jumpToQuestion(${i})" class="size-10 rounded-xl flex items-center justify-center font-semibold text-xs transition-all border-2 cursor-pointer q-nav-item" id="nav-${i}">${i + 1}</button>`;
         });
-        $('#paginationDots').html(html);
-        updateDots();
+        $('#navigatorGrid, #mobileNavigatorGrid').html(html);
+        updateNavigator();
     }
 
-    function updateDots() {
+    function updateNavigator() {
         questions.forEach((q, i) => {
             const hasAnswer = answers[q.id];
             const isCurrent = currentIndex === i;
-            const dot = $(`#dot-${i}`);
             
-            dot.removeClass('bg-gray-200 bg-blue-600 bg-green-500 scale-150');
+            // Desktop Navigator
+            const btn = $(`#nav-${i}, #mobileNavigatorGrid #nav-${i}`);
+            btn.removeClass('bg-gray-50 border-gray-100 text-gray-400 bg-blue-600 border-blue-600 text-white bg-green-500 border-green-500 text-white shadow-lg');
+            
             if (isCurrent) {
-                dot.addClass('bg-blue-600 scale-150 shadow-md shadow-blue-100');
+                btn.addClass('bg-blue-600 border-blue-600 text-white shadow-lg scale-110 relative z-10');
             } else if (hasAnswer) {
-                dot.addClass('bg-green-500');
+                btn.addClass('bg-green-500 border-green-500 text-white');
             } else {
-                dot.addClass('bg-gray-200');
+                btn.addClass('bg-gray-50 border-gray-100 text-gray-400 hover:border-blue-200 hover:text-blue-500');
             }
         });
+
+        // Sync original dots hidden under footer
+        let dotsHtml = '';
+        questions.forEach((_, i) => {
+            const hasAns = answers[questions[i].id];
+            const isCurr = currentIndex === i;
+            dotsHtml += `<div class="size-2 rounded-full transition-all duration-300 ${isCurr ? 'bg-blue-600 scale-150' : (hasAns ? 'bg-green-500' : 'bg-gray-200')}"></div>`;
+        });
+        $('#paginationDots').html(dotsHtml);
     }
 
     function autoSubmit() {
@@ -442,19 +535,22 @@ recordActivity($conn, 'EXAM_START', "Student started exam: '{$exam->subject}' (I
         });
     };
 
-    function finalSubmitAction() {
+    window.finalSubmitAction = function() {
         clearInterval(timerInterval);
-        localStorage.removeItem(TIMER_KEY); // clear saved timer on submit
+        // Clear persistence
+        try {
+            localStorage.removeItem(TIMER_KEY);
+        } catch (e) {}
         
         $('#mainContent').fadeOut(300, function() {
             $(this).html('<div class="h-screen flex flex-col items-center justify-center p-8 text-center">' +
                 '<div class="size-24 border-8 border-green-100 border-t-green-600 rounded-full animate-spin mb-8"></div>' +
-                '<h2 class="text-3xl font-black text-gray-800 mb-2">Submitting Exam...</h2>' +
+                '<h2 class="text-3xl font-semibold text-gray-800 mb-2">Submitting Exam...</h2>' +
                 '<p class="text-gray-500 font-medium">Please wait while we calculate your result.</p>' +
                 '</div>').fadeIn(300);
 
             $.ajax({
-                url: '/school_app/student/auth/submit_exam.php',
+                url: 'auth/submit_exam.php',
                 type: 'POST',
                 data: { 
                     exam_id: <?= $exam_id ?>,
@@ -463,6 +559,7 @@ recordActivity($conn, 'EXAM_START', "Student started exam: '{$exam->subject}' (I
                 dataType: 'json',
                 success: function(res) {
                     if (res.success) {
+                        disableProctoring(); // ← Kill ALL anti-cheat listeners now that exam is done
                         showSuccessScreen(res);
                     } else {
                         Swal.fire('Error', res.message || 'Submission failed.', 'error').then(() => {
@@ -646,4 +743,112 @@ recordActivity($conn, 'EXAM_START', "Student started exam: '{$exam->subject}' (I
     });
 })();
 // \u2500\u2500 End Calculator \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+// ── End Calculator ──────────────────────────────────────────
+
+// ── Live Proctoring (Anti-Cheat) ──────────────────────────
+let cheatingWarnings = 0;
+const MAX_WARNINGS = 3;
+const currentExamId = <?= $exam_id ?>;
+let isSubmittingExam = false;
+let isAlertOpen = false;
+let examDone = false; // Set to true after successful submission — stops all proctoring
+
+// Call this once exam is successfully submitted to kill ALL proctoring
+function disableProctoring() {
+    examDone = true;
+    document.removeEventListener('visibilitychange', _visibilityHandler);
+    window.removeEventListener('blur', _blurHandler);
+    document.removeEventListener('contextmenu', _ctxHandler);
+    document.removeEventListener('copy',  _copyHandler);
+    document.removeEventListener('cut',   _cutHandler);
+    document.removeEventListener('paste', _pasteHandler);
+    document.removeEventListener('keydown', _keydownHandler);
+}
+
+function logProctorAlert(reason) {
+    if (isSubmittingExam || isAlertOpen) return;
+    isAlertOpen = true;
+    cheatingWarnings++;
+    
+    // Log secretly to backend
+    $.post('../student/auth/proctoring_api.php', { 
+        action: 'log_alert', 
+        exam_id: currentExamId,
+        reason: reason
+    });
+
+    if (cheatingWarnings >= MAX_WARNINGS) {
+        isSubmittingExam = true;
+        Swal.fire({
+            title: 'EXAM TERMINATED',
+            text: 'Multiple proctoring violations detected. Your exam has been automatically submitted.',
+            icon: 'error',
+            allowOutsideClick: false,
+            confirmButtonColor: '#dc2626',
+            confirmButtonText: 'Exit'
+        }).then(() => {
+            if (typeof window.finalSubmitAction === 'function') {
+                  window.finalSubmitAction(); // Force submit directly
+            }
+        });
+    } else {
+        Swal.fire({
+            title: 'Proctoring Alert!',
+            text: `Violation: ${reason}. Please remain on this screen. Attempt ${cheatingWarnings} of ${MAX_WARNINGS}.`,
+            icon: 'warning',
+            allowOutsideClick: false,
+            confirmButtonColor: '#f59e0b'
+        }).then(() => {
+            setTimeout(() => { isAlertOpen = false; }, 500);
+        });
+    }
+}
+
+const _visibilityHandler = function() {
+    if (document.hidden && !isSubmittingExam && !isAlertOpen && !examDone) {
+        logProctorAlert("Switched browser tab or minimized window");
+    }
+};
+document.addEventListener("visibilitychange", _visibilityHandler);
+
+const _blurHandler = function() {
+    if (!isSubmittingExam && !isAlertOpen && !examDone) {
+        logProctorAlert("Clicked outside exam window or used another application");
+    }
+};
+window.addEventListener("blur", _blurHandler);
+
+window.addEventListener("focus", function() {
+    // Just re-gaining focus, ignore
+});
+
+// Disable Right Click
+const _ctxHandler  = event => event.preventDefault();
+const _copyHandler  = event => event.preventDefault();
+const _cutHandler   = event => event.preventDefault();
+const _pasteHandler = event => event.preventDefault();
+document.addEventListener('contextmenu', _ctxHandler);
+
+// Disable Copy, Cut, Paste
+document.addEventListener('copy',  _copyHandler);
+document.addEventListener('cut',   _cutHandler);
+document.addEventListener('paste', _pasteHandler);
+
+// Disable specific keyboard shortcuts (F12, Ctrl+Shift+I, Ctrl+C, Ctrl+V, etc.)
+const _keydownHandler = function(e) {
+    if (examDone) return; // Exam finished — allow normal keyboard usage
+    if (
+        e.keyCode === 123 || // F12
+        (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74)) || // Ctrl+Shift+I/J
+        (e.ctrlKey && e.keyCode === 85) || // Ctrl+U
+        (e.ctrlKey && (e.keyCode === 67 || e.keyCode === 86 || e.keyCode === 88)) // Ctrl+C/V/X
+    ) {
+        e.preventDefault();
+        logProctorAlert("Attempted to use prohibited keyboard shortcut");
+    }
+};
+document.addEventListener('keydown', _keydownHandler);
+
+// ── End Proctoring ──────────────────────────────────────────
+
 </script>

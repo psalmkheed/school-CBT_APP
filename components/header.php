@@ -1,13 +1,14 @@
 <?php
 require __DIR__ . '/../connections/db.php';
 
-// Build APP_URL from the actual request host so it works on any device
-// (localhost on the PC, the PC's IP on a phone, etc.)
-$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-DEFINE("APP_URL", $scheme . '://' . $_SERVER['HTTP_HOST'] . '/school_app/');
-$base = APP_URL;
 
 $role = $_SESSION['role'];
+?>
+<script>
+      window.APP_URL = "<?= APP_URL ?>";
+      window.BASE_URL = "<?= $base_path ?>";
+</script>
+<?php
 
 ?>
 
@@ -32,14 +33,14 @@ if (!isset($_SESSION['active_session']) || empty($_SESSION['active_session'])) {
       ");
       $sess_stmt->execute();
       $active_session = $sess_stmt->fetch(PDO::FETCH_OBJ);
-      
+
       // 2. If no current/future session, get the very last one that ended
       if (!$active_session) {
             $sess_stmt = $conn->prepare("SELECT id, session, term, session_end_date FROM sch_session ORDER BY session_end_date DESC LIMIT 1");
             $sess_stmt->execute();
             $active_session = $sess_stmt->fetch(PDO::FETCH_OBJ);
       }
-      
+
       if ($active_session) {
             $_SESSION['active_session'] = $active_session->session;
             $_SESSION['active_term'] = $active_session->term;
@@ -55,14 +56,15 @@ if (!isset($_SESSION['active_session']) || empty($_SESSION['active_session'])) {
 <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-      <title><?= strtoupper(explode(' ', $result->school_name)[0]) ?? '' ?> CBT Portal <?= ucfirst($role) ?? '' ?> - Dashboard
+      <title><?= strtoupper(explode(' ', $result->school_name)[0]) ?? '' ?> CBT Portal <?= ucfirst($role) ?? '' ?> -
+            Dashboard
       </title>
-      <link rel="manifest" href="/school_app/manifest.php">
+      <link rel="manifest" href="<?= $base ?>manifest.php">
       <meta name="theme-color" content="<?= $primary ?>">
       <meta name="mobile-web-app-capable" content="yes">
       <meta name="apple-mobile-web-app-capable" content="yes">
       <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-      <link rel="icon" type="image" href="<?= $base ?>uploads/school_logo/<?= $result->school_logo ?>" />
+      <link rel="icon" type="image" href="<?= $base . ltrim($result->school_logo ?? '', '/') ?>" />
       <link href="<?= $base ?>src/fontawesome.css" rel="stylesheet">
       <link href="<?= $base ?>src/swiper.css" rel="stylesheet">
       <link href="<?= $base ?>src/boxicons.css" rel="stylesheet">
@@ -71,6 +73,7 @@ if (!isset($_SESSION['active_session']) || empty($_SESSION['active_session'])) {
       <script src="<?= $base ?>src/jquery.js"></script>
       <script src="<?= $base ?>src/swiper-bundle.js"></script>
       <script src="<?= $base ?>src/sweetAlert.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
       <!-- Premium Tooltips (Tippy.js) -->
       <script src="https://unpkg.com/@popperjs/core@2"></script>
@@ -219,27 +222,117 @@ if (!isset($_SESSION['active_session']) || empty($_SESSION['active_session'])) {
       <script type="importmap">
       {
             "imports": {
-                  "ckeditor5": "/school_app/assets/ckeditor/ckeditor5/ckeditor5.js?v=<?= time() ?>",
-                        "ckeditor5/": "/school_app/assets/ckeditor/ckeditor5/"
+                  "ckeditor5": "<?= $base ?>assets/ckeditor/ckeditor5/ckeditor5.js?v=<?= time() ?>",
+                        "ckeditor5/": "<?= $base ?>assets/ckeditor/ckeditor5/"
                   }
             }
             </script>
-      <script type="module" src="/school_app/assets/ckeditor/main.js?v=<?= time() ?>"
+      <script type="module" src="<?= $base ?>assets/ckeditor/main.js?v=<?= time() ?>"
             onerror="console.error('Fatal: Failed to load main.js module file'); alert('Editor script loading failed.');">
             </script>
       <script>
             console.log('Loader: Root Header diagnostics running...');
-            (function checkEditorExposed() {
+            function checkEditorExposed() {
                   const checkInterval = setInterval(() => {
                         if (window.ClassicEditor) {
                               console.log('Loader: SUCCESS - ClassicEditor available globally.');
                               clearInterval(checkInterval);
                         }
-                  }, 500);
-                  setTimeout(() => { clearInterval(checkInterval); }, 5000);
-            })();
+                  }
+                  )
+            };
+      </script>
+      <script>
+            // Global Announcements Logic
+            $(document).ready(function () {
+                  const role = '<?= $role ?>';
+
+                  // Query active announcements
+                  $.get(window.BASE_URL + 'admin/auth/announcement_api.php?action=get_active', function (res) {
+                        if (res.status === 'success' && res.data.length > 0) {
+                              let dismissed = [];
+                              try {
+                                    dismissed = JSON.parse(localStorage.getItem('dismissed_announcements') || '[]');
+                              } catch (e) {
+                                    console.warn('Announcement dismissal storage access blocked.');
+                              }
+                              let renderDelay = 500;
+
+                              res.data.forEach((ann, index) => {
+                                    if (!dismissed.includes(ann.id)) {
+                                          setTimeout(() => showAnnouncementPopup(ann), renderDelay);
+                                          renderDelay += 2000; // stagger multiple announcements
+                                    }
+                              });
+                        }
+                  });
+
+                  function showAnnouncementPopup(ann) {
+                        const bgColors = {
+                              'info': 'bg-blue-600',
+                              'warning': 'bg-orange-500',
+                              'success': 'bg-green-600',
+                              'danger': 'bg-red-600'
+                        };
+                        const iconTypes = {
+                              'info': 'bx-info-circle',
+                              'warning': 'bx-alert-triangle',
+                              'success': 'bx-badge-check',
+                              'danger': 'bx-x-shield'
+                        };
+
+                        const bgColor = bgColors[ann.type] || bgColors['info'];
+                        const icon = iconTypes[ann.type] || iconTypes['info'];
+
+                        const popupId = 'announcement_popup_' + ann.id;
+                        const popupHtml = `
+                                          <div id="${popupId}" class="fixed top-4 left-1/2 transform -translate-x-1/2 w-[90%] md:w-[450px] z-[9999] opacity-0 -translate-y-10 transition-all duration-500 ease-out shadow-2xl rounded-2xl overflow-hidden">
+                                                <div class="${bgColor} text-white p-5 relative">
+                                                      <button class="absolute top-3 right-3 text-white/70 hover:text-white transition-colors bg-black/10 hover:bg-black/20 rounded-full w-7 h-7 flex items-center justify-center dismiss-btn" data-id="${ann.id}">
+                                                            <i class="bx bx-x text-xl"></i>
+                                                      </button>
+                                                      <div class="flex items-start gap-4">
+                                                            <div class="mt-1 flex-shrink-0 bg-white/20 w-10 h-10 rounded-full flex items-center justify-center">
+                                                                  <i class="bx ${icon} text-2xl"></i>
+                                                            </div>
+                                                            <div class="pr-4">
+                                                                  <h4 class="font-semibold text-lg leading-tight mb-1">${ann.title}</h4>
+                                                                  <p class="text-white/90 text-sm font-medium leading-relaxed">${ann.message.replace(/\\n/g, '<br>')}</p>
+                                                            </div>
+                                                      </div>
+                                                </div>
+                                          </div>
+                                          `;
+
+                        $('body').append(popupHtml);
+
+                        // Animate in
+                        setTimeout(() => {
+                              $(`#${popupId}`).removeClass('opacity-0 -translate-y-10').addClass('opacity-100 translate-y-0');
+                        }, 50);
+
+                        // Dismiss logic
+                        $(`#${popupId} .dismiss-btn`).on('click', function () {
+                              const anID = $(this).data('id');
+                              // Save to local storage to never show again
+                              try {
+                                    let hidden = JSON.parse(localStorage.getItem('dismissed_announcements') || '[]');
+                                    if (!hidden.includes(anID)) {
+                                          hidden.push(anID);
+                                          localStorage.setItem('dismissed_announcements', JSON.stringify(hidden));
+                                    }
+                              } catch (e) {
+                                    console.error('Cannot save announcement dismissal state: Storage blocked.');
+                              }
+
+                              // Animate out
+                              $(`#${popupId}`).removeClass('opacity-100 translate-y-0').addClass('opacity-0 -translate-y-4 scale-95');
+                              setTimeout(() => $(`#${popupId}`).remove(), 400);
+                        });
+                  }
+            });
       </script>
 </head>
 
-<body class="select-none user-<?= $role ?>">
-      <div class="w-full">
+<body class="select-none user-<?= $role ?> height-full bg-[#f1f1f1]">
+      <div class="w-full bg-[#f1f1f1] min-h-screen">

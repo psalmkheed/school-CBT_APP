@@ -1,9 +1,10 @@
 @import "tailwindcss";
+@custom-variant dark (&:is(.dark *));
 
 /* Sidebar mobile open state — !important overrides Tailwind's -translate-x-full */
 .sidebar-open {
       transform: translateX(0) !important;
-            translate: none !important;
+      translate: none !important;
 }
 
 /* Boxicons uses [class^="bx"] (attribute selector) which beats Tailwind's .hidden
@@ -20,9 +21,14 @@
       }
 
       #sideBar.sidebar-collapsed {
-            width: 85px;
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
+            width: 90px;
+            padding-left: 0.25rem;
+            padding-right: 0.25rem;
+      }
+
+            #sideBar.sidebar-collapsed>div.h-full {
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
       }
 
       #sideBar.sidebar-collapsed p,
@@ -33,14 +39,18 @@
       #sideBar.sidebar-collapsed h5,
       #sideBar.sidebar-collapsed h6,
       #sideBar.sidebar-collapsed .dropdown-arrow,
-      #sideBar.sidebar-collapsed .sidebar-dropdown-wrapper ul,
       #sideBar.sidebar-collapsed .mt-auto {
             display: none !important;
       }
 
       #sideBar.sidebar-collapsed .md\:flex.items-center.gap-2 {
             justify-content: center !important;
-            padding: 0.5rem 0 !important;
+            padding: 0.75rem 0 !important;
+            gap: 0 !important;
+      }
+
+      #sideBar.sidebar-collapsed .md\:flex.items-center.gap-2 img {
+            margin: 0 auto !important;
       }
 
       #sideBar.sidebar-collapsed .li,
@@ -61,9 +71,92 @@
             font-size: 1.75rem;
       }
 
+      /* Pop-out submenus for collapsed sidebar */
+      #sideBar.sidebar-collapsed {
+            overflow: visible !important;
+      }
+
+            #sideBar.sidebar-collapsed>div.h-full {
+            overflow: visible !important;
+      }
+
+      #sideBar.sidebar-collapsed .sidebar-dropdown-wrapper {
+            position: relative;
+      }
+
+      #sideBar.sidebar-collapsed .sidebar-dropdown-wrapper ul {
+            position: absolute;
+            left: 100%;
+            top: 0;
+            width: 200px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: 0 1rem 1rem 0;
+            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.1);
+            padding: 0.75rem 0.5rem;
+            display: none !important;
+                  /* Start as hidden */
+            z-index: 9999999;
+            margin-left: 0.5rem;
+      }
+
+      #sideBar.sidebar-collapsed .sidebar-dropdown-wrapper:hover ul {
+            display: block !important;
+      }
+
+      /* Hover bridge to keep menu open */
+      #sideBar.sidebar-collapsed .sidebar-dropdown-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -20px;
+            width: 20px;
+            height: 100%;
+            display: none;
+            z-index: 999999;
+      }
+
+      #sideBar.sidebar-collapsed .sidebar-dropdown-wrapper:hover::after {
+            display: block;
+      }
+
+      #sideBar.sidebar-collapsed .sidebar-dropdown-wrapper ul li {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: flex-start !important;
+            gap: 0.75rem !important;
+            padding: 0.75rem 1rem !important;
+            border-radius: 0.75rem;
+            transition: all 0.2s;
+            width: 100% !important;
+            text-align: left !important;
+      }
+
+      #sideBar.sidebar-collapsed .sidebar-dropdown-wrapper ul li:hover {
+            background: var(--bg-sidebar-active);
+      }
+
+      #sideBar.sidebar-collapsed .sidebar-dropdown-wrapper ul li p {
+            display: block !important;
+            font-size: 0.875rem !important;
+            font-weight: 600 !important;
+            color: var(--text-main) !important;
+            white-space: nowrap;
+      }
+
+      #sideBar.sidebar-collapsed .sidebar-dropdown-wrapper ul li i {
+            margin: 0 !important;
+            font-size: 1.25rem !important;
+            min-width: 1.25rem;
+            text-align: center;
+      }
+
       /* Main content adjustment */
+      #sideBar.sidebar-collapsed {
+            width: 90px !important;
+      }
       #sideBar.sidebar-collapsed~main {
-            margin-left: 85px;
+            margin-left: 90px !important;
             transition: margin-left 0.3s ease;
       }
 
@@ -94,18 +187,305 @@ body {
 @media (min-width: 768px) {
 
       [class^="bx"].md\:block,
-            [class*=" bx"].md\:block {
+      [class*=" bx"].md\:block {
                   display: inline-block !important;
             }
 }
 
 
+/* ── Premium Scrollbars ────────────────────────────────── */
 ::-webkit-scrollbar {
-      width: 2px;
+      width: 6px;
+      height: 6px;
+}
+
+::-webkit-scrollbar-track {
+      background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-      width: 2px;
+      background: #e2e8f0;
+      border-radius: 100px;
+      transition: background 0.3s ease;
+      border: 1px solid transparent;
+      background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+      background: #cbd5e1;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+      display: none;
+}
+
+/* ── Dark Mode & Theme Variables ────────────────────────── */
+:root {
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --bg-surface: #ffffff;
+      --bg-body: #f8fafc;
+      --bg-sidebar: #ffffff;
+      --text-main: #1e293b;
+      --text-muted: #64748b;
+      --border-color: #f1f5f9;
+      --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.dark {
+      --primary: #818cf8;
+      --primary-hover: #a5b4fc;
+      --bg-surface: #111827;
+      --bg-sidebar: #0b0f19;
+      --bg-sidebar-active: #1f2937;
+      --text-main: #f9fafb;
+      --text-muted: #d1d5db;
+            /* Brighter for better contrast */
+      --border-color: #1f2937;
+      --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+}
+
+@media print {
+
+      .no-print,
+      #sideBar,
+      nav,
+      .md\:hidden,
+      .fixed.bottom-0 {
+            display: none !important;
+      }
+
+      body {
+            padding: 0 !important;
+            margin: 0 !important;
+            background: white !important;
+      }
+}
+
+/* ── Global Dark Mode Overrides ─────────────────────────── */
+body.dark {
+      background-color: var(--bg-body);
+      color: var(--text-main);
+}
+
+.dark .bg-white {
+      background-color: var(--bg-surface) !important;
+      border-color: var(--border-color) !important;
+}
+
+.dark .bg-gray-50 {
+      background-color: #111827 !important;
+      border-color: var(--border-color) !important;
+}
+
+.dark .bg-gray-100 {
+      background-color: #1a202c !important;
+}
+
+.dark .bg-gray-100\/50 {
+      background-color: rgba(26, 32, 44, 0.5) !important;
+}
+
+.dark .bg-\[\#f1f1f1\] {
+      background-color: var(--bg-body) !important;
+}
+
+/* Text Overrides - Bulletproof */
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6 {
+      color: #f9fafb !important;
+}
+
+.dark p,
+.dark span {
+      color: #d1d5db !important;
+}
+
+/* Ensure icons and other specific texts are visible */
+.dark i {
+      color: inherit;
+}
+
+.dark .text-gray-800,
+.dark .text-gray-700,
+.dark .text-gray-900,
+.dark .text-black {
+      color: #f9fafb !important;
+}
+
+.dark .text-gray-600,
+.dark .text-gray-500 {
+      color: #d1d5db !important;
+}
+
+.dark .text-gray-400 {
+      color: #9ca3af !important;
+}
+
+/* Borders & Dividers */
+.dark .border-gray-50,
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300,
+.dark hr {
+      border-color: var(--border-color) !important;
+}
+
+/* Professional Form Controls in Dark Mode */
+.dark input:not([type="color"]):not([type="checkbox"]):not([type="radio"]),
+.dark textarea,
+.dark select {
+      background-color: #1f2937 !important;
+      border-color: #374151 !important;
+      color: #f9fafb !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+      color: #9ca3af !important;
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+      border-color: var(--primary) !important;
+      box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.2) !important;
+}
+
+/* Professional Tables in Dark Mode */
+.dark table th,
+.dark thead {
+      background-color: #111827 !important;
+      color: #d1d5db !important;
+      border-color: #374151 !important;
+}
+
+.dark table td,
+.dark tr {
+      border-color: #374151 !important;
+      color: #e5e7eb !important;
+}
+
+.dark tr:hover td {
+      background-color: #1f2937 !important;
+}
+
+/* Fix shadows and empty states in dark mode */
+.dark .shadow-sm,
+.dark .shadow-md,
+.dark .shadow-lg,
+.dark .shadow-xl {
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3) !important;
+}
+
+.dark .bg-slate-50 {
+      background-color: #1e293b !important;
+}
+
+/* Sidebar Dark Mode */
+.dark aside#sideBar {
+      background-color: var(--bg-sidebar) !important;
+      border-right-color: var(--border-color) !important;
+}
+
+.dark .sidebar li:not(.active) {
+      color: var(--text-muted);
+}
+
+/* Sidebar Toggler Polish */
+#sideBarTogglerContainer {
+      @apply size-7 absolute -right-3.5 top-3 z-[9999999] rounded-full border-2 border-gray-100 bg-white text-gray-500 flex items-center justify-center shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 cursor-pointer;
+}
+
+.dark #sideBarTogglerContainer {
+      background-color: var(--bg-surface);
+      border-color: var(--border-color);
+      color: var(--text-main);
+}
+
+#sideBarToggler.rotating {
+      transform: rotate(180deg);
+}
+
+/* ── Premium Dark Mode Aesthetics ────────────────────────── */
+.dark .bg-white {
+      background-color: var(--bg-surface) !important;
+      background-image: linear-gradient(rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
+}
+
+.dark .glass {
+      background: rgba(30, 41, 59, 0.6) !important;
+      backdrop-filter: blur(12px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Button & Interactive Polishing */
+.dark button:not(.bg-primary):not(.bg-blue-600):not(.bg-green-600) {
+      background-color: #1a202c;
+      border-color: #2d3748;
+}
+
+.dark button:hover:not(.bg-primary) {
+      background-color: #2d3748;
+}
+
+/* ── Theme Transition ─────────────────────────────────── */
+body {
+      transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark .shadow-xl {
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* ── Skeleton in Dark Mode ─────────────────────────────── */
+.dark .skeleton {
+      background-color: #1e293b !important;
+      border-color: #334155 !important;
+}
+
+.dark .skeleton::after {
+      background: linear-gradient(90deg,
+                        transparent,
+                        rgba(255, 255, 255, 0.05),
+                  transparent) !important;
+}
+
+/* ── Glassmorphism ────────────────────────────────────── */
+.glass {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(12px) saturate(180%);
+      -webkit-backdrop-filter: blur(12px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-indigo {
+      background: rgba(99, 102, 241, 0.1);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+}
+
+/* ── Micro-Interactions ───────────────────────────────── */
+.hover-lift {
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.15);
+}
+
+.active-shrink:active {
+      transform: scale(0.96);
 }
 
 .sidebar .li {
@@ -165,6 +545,7 @@ body {
       color: #00A63E;
       /* Primary Green from DD-WebApp */
 }
+
 .user-staff .li.active,
 .user-student .li.active {
       @apply border border-blue-200 bg-linear-to-r from-blue-100 to-blue-200;
@@ -217,15 +598,15 @@ body {
 }
 
 @keyframes fadeIn {
-from {
+      from {
             opacity: 0;
-transform: translateY(200px) scale(0.95);
-}
+            transform: translateY(200px) scale(0.95);
+            }
 
-  to {
-        opacity: 1;
-transform: translateY(0) scale(1);
-}
+            to {
+                  opacity: 1;
+                  transform: translateY(0) scale(1);
+            }
 }
 
 @keyframes fadeOut {
@@ -305,9 +686,9 @@ header.masthead:after {
 /* Bottom Sheet Animations */
 @keyframes slide-up {
       from {
-                  transform: translateY(100%);
+            transform: translateY(100%);
             }
-      
+            
             to {
                   transform: translateY(0);
             }
@@ -315,9 +696,9 @@ header.masthead:after {
 
 @keyframes slide-down {
       from {
-                  transform: translateY(0);
+            transform: translateY(0);
             }
-      
+            
             to {
                   transform: translateY(100%);
             }
@@ -366,7 +747,8 @@ header.masthead:after {
             width: 100% !important;
             z-index: 200;
       }
-#dropDownItems>div {
+
+            #dropDownItems>div {
             border-radius: 24px 24px 0 0;
             max-height: 85vh;
             overflow-y: auto;
@@ -383,9 +765,10 @@ header.masthead:after {
             right: 0;
             left: auto;
             width: 288px;
-                  /* 72 * 4px */
+            /* 72 * 4px */
       }
-#dropDownItems>div {
+
+            #dropDownItems>div {
             border-radius: 16px;
             animation: none;
       }
@@ -424,7 +807,7 @@ header.masthead:after {
 #ptr-loader i {
       font-size: 20px;
       color: #3b82f6;
-            /* Blue-500 */
+      /* Blue-500 */
 }
 
 .ptr-spinning {
@@ -433,9 +816,9 @@ header.masthead:after {
 
 @keyframes ptr-spin {
       from {
-                  transform: rotate(0deg);
+            transform: rotate(0deg);
             }
-      
+            
             to {
                   transform: rotate(360deg);
             }
@@ -443,19 +826,20 @@ header.masthead:after {
 
 .ptr-success i {
       color: #10b981 !important;
-            /* Green-500 */
+      /* Green-500 */
 }
 
 /* ── Skeleton Loaders ────────────────────────────────── */
 .skeleton {
-      @apply bg-gray-200 overflow-hidden relative;
+      @apply bg-gray-200/50 overflow-hidden relative border border-gray-100/50;
+      backdrop-filter: blur(4px);
 }
 
 .skeleton::after {
       content: "";
       @apply absolute inset-0;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-      animation: skeleton-shimmer 1.5s infinite;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.6), transparent);
+      animation: skeleton-shimmer 2s infinite linear;
 }
 
 @keyframes skeleton-shimmer {
@@ -469,7 +853,7 @@ header.masthead:after {
 }
 
 .skeleton-pulse {
-      animation: skeleton-pulse 1.5s ease-in-out infinite;
+      animation: skeleton-pulse 2s ease-in-out infinite;
 }
 
 @keyframes skeleton-pulse {
@@ -479,7 +863,7 @@ header.masthead:after {
       }
 
       50% {
-            opacity: 0.5;
+            opacity: 0.4;
       }
 }
 

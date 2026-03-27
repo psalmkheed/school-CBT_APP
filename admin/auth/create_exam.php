@@ -8,7 +8,7 @@ $response = [
       "message" => ""
 ];
 
-if ($_SESSION['role'] !== 'admin') {
+if (!in_array($_SESSION['role'], ['admin', 'super'])) {
       echo json_encode([
             "status" => "error", 
             "message" => "Unauthorized"]);
@@ -47,19 +47,24 @@ if (
 }
 
 
+$sess = $_SESSION['active_session'] ?? '';
+$term = $_SESSION['active_term'] ?? '';
+
 // Check if exam already exists
-$exam_check = $conn->prepare("SELECT id FROM exams WHERE subject = :subject && class = :class && exam_type = :exam_type && paper_type = :paper_type");
+$exam_check = $conn->prepare("SELECT id FROM exams WHERE subject = :subject && class = :class && exam_type = :exam_type && paper_type = :paper_type && session = :sess && term = :term");
 $exam_check->execute([
       ':subject' => $subject,
       ':class' => $class,
       ':exam_type' => $exam_type,
-      ':paper_type' => $paper_type
+      ':paper_type' => $paper_type,
+      ':sess' => $sess,
+      ':term' => $term
 ]);
 
 if ($exam_check->fetch()) {
       echo json_encode([
             'status' => 'error',
-            'message' => "$subject already created for $class"
+            'message' => "$subject already created for $class in this term."
       ]);
       exit;
 }

@@ -7,7 +7,7 @@ $class_stmt->execute();
 $all_classes = $class_stmt->fetchAll(PDO::FETCH_OBJ);
 
 // Fetch all staff members to populate the dropdown
-$staff_stmt = $conn->prepare("SELECT id, first_name, last_name FROM users WHERE role = 'staff' ORDER BY first_name ASC");
+$staff_stmt = $conn->prepare("SELECT id, first_name, surname FROM users WHERE role = 'staff' ORDER BY first_name ASC");
 $staff_stmt->execute();
 $all_staff = $staff_stmt->fetchAll(PDO::FETCH_OBJ);
 ?>
@@ -47,7 +47,7 @@ $all_staff = $staff_stmt->fetchAll(PDO::FETCH_OBJ);
                                     <span class="px-3 py-1 rounded-full bg-gray-100 text-gray-500 text-[10px] font-bold uppercase tracking-widest">Active Class</span>
                               </div>
 
-                              <h4 class="text-xl font-black text-gray-800 mb-1"><?= htmlspecialchars($cls->class) ?></h4>
+                              <h4 class="text-xl font-semibold text-gray-800 mb-1"><?= htmlspecialchars($cls->class) ?></h4>
                               
                               <div class="mb-6">
                                     <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">Assigned Class Teacher</label>
@@ -57,26 +57,50 @@ $all_staff = $staff_stmt->fetchAll(PDO::FETCH_OBJ);
                                           <option value="">-- No Teacher Assigned --</option>
                                           <?php foreach ($all_staff as $staff): ?>
                                                 <option value="<?= $staff->id ?>" <?= ($cls->teacher_id == $staff->id) ? 'selected' : '' ?>>
-                                                      <?= htmlspecialchars($staff->first_name . ' ' . $staff->last_name) ?>
+                                                      <?= htmlspecialchars($staff->first_name . ' ' . $staff->surname) ?>
                                                 </option>
                                           <?php endforeach; ?>
                                     </select>
                               </div>
 
-                              <div class="flex items-center gap-2 pt-4 border-t border-gray-50">
-                                    <?php 
-                                          // Count students in this class
-                                          $count_stmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE role = 'student' AND class = :class");
-                                          $count_stmt->execute([':class' => $cls->class]);
-                                          $student_count = $count_stmt->fetchColumn();
-                                    ?>
-                                    <div class="flex -space-x-2">
-                                          <div class="w-7 h-7 rounded-full bg-orange-100 border-2 border-white flex items-center justify-center text-orange-600">
-                                                <i class="bx-user text-xs"></i>
-                                          </div>
-                                    </div>
-                                    <span class="text-xs font-bold text-gray-500"><?= $student_count ?> Students Enrolled</span>
+                              <div class="mb-6">
+                                    <label class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest block mb-1.5">Promotion Path (Next Class)</label>
+                                    <select 
+                                          onchange="assignNextClass(<?= $cls->id ?>, this.value)"
+                                          class="w-full bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3 text-sm font-semibold text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:bg-white transition-all appearance-none cursor-pointer">
+                                          <option value="">-- Graduated / Leave School --</option>
+                                          <?php foreach ($all_classes as $nextCls): ?>
+                                                <?php if($nextCls->id !== $cls->id): ?>
+                                                <option value="<?= $nextCls->id ?>" <?= ($cls->next_class_id == $nextCls->id) ? 'selected' : '' ?>>
+                                                      <?= htmlspecialchars($nextCls->class) ?>
+                                                </option>
+                                                <?php endif; ?>
+                                          <?php endforeach; ?>
+                                    </select>
                               </div>
+
+                              <div class="flex items-center justify-between pt-4 border-t border-gray-50">
+                                    <div class="flex items-center gap-2">
+                                          <?php 
+                                                // Count students in this class
+                                                $count_stmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE role = 'student' AND class = :class");
+                                                $count_stmt->execute([':class' => $cls->class]);
+                                                $student_count = $count_stmt->fetchColumn();
+                                          ?>
+                                          <div class="flex -space-x-2">
+                                                <div class="w-7 h-7 rounded-full bg-orange-100 border-2 border-white flex items-center justify-center text-orange-600">
+                                                      <i class="bx-user text-xs"></i>
+                                                </div>
+                                          </div>
+                                          <span class="text-xs font-bold text-gray-500"><?= $student_count ?> Students Enrolled</span>
+                                    </div>
+                                    <button 
+                                          title="Manage subject teachers for this class"
+                                          onclick="manageClassSubjects(<?= $cls->id ?>, '<?= htmlspecialchars($cls->class) ?>')"
+                                          class="p-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition duration-300 font-semibold cursor-pointer text-sm flex items-center justify-center">
+                                          <i class="bx bx-book-bookmark"></i>
+                                    </button>
+                               </div>
                         </div>
                   </div>
             <?php endforeach; ?>
@@ -145,7 +169,7 @@ $('#create-class-form').off('submit').on('submit', function(e) {
     const btn = $('#classBtn');
     
     $.ajax({
-        url: '/school_app/admin/auth/create_class.php',
+        url: 'auth/create_class.php',
         method: 'POST',
         data: $(this).serialize(),
         dataType: 'json',
@@ -179,7 +203,7 @@ function assignTeacher(classId, teacherId) {
     window.showToast('Updating assignment...', 'success');
 
     $.ajax({
-        url: '/school_app/admin/auth/assign_teacher.php',
+        url: 'auth/assign_teacher.php',
         type: 'POST',
         data: {
             class_id: classId,
@@ -195,6 +219,109 @@ function assignTeacher(classId, teacherId) {
         },
         error: function() {
             window.showToast('Network error. Please try again.', 'error');
+        }
+    });
+}
+
+function assignNextClass(classId, nextClassId) {
+    if (!classId) return;
+    
+    window.showToast('Updating path...', 'success');
+    
+    $.ajax({
+        url: 'auth/assign_next_class.php',
+        type: 'POST',
+        data: { class_id: classId, next_class_id: nextClassId },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                window.showToast(response.message, 'success');
+            } else {
+                window.showToast(response.message, 'error');
+            }
+        },
+        error: function() {
+            window.showToast('Network error. Please try again.', 'error');
+        }
+    });
+}
+
+function manageClassSubjects(classId, className) {
+    $.ajax({
+        url: 'auth/get_class_subjects.php',
+        type: 'GET',
+        data: { class_id: classId },
+        dataType: 'json',
+        success: function(res) {
+            if (!res.success) {
+                Swal.fire('Error', res.message, 'error');
+                return;
+            }
+
+            let html = '<div class="space-y-4 max-h-[400px] overflow-y-auto px-2">';
+            res.subjects.forEach(sub => {
+                let options = '<option value="">-- Unassigned --</option>';
+                res.staff.forEach(st => {
+                    const isSelected = (res.assignments[sub.id] == st.id) ? 'selected' : '';
+                    options += `<option value="${st.id}" ${isSelected}>${st.first_name} ${st.surname}</option>`;
+                });
+                
+                html += `
+                    <div class="flex flex-col gap-1 text-left">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">${sub.subject}</label>
+                        <select class="class-subject-select w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-gray-50 font-bold text-gray-700" data-subject-id="${sub.id}">
+                            ${options}
+                        </select>
+                    </div>
+                `;
+            });
+            html += '</div>';
+
+            Swal.fire({
+                title: 'Manage Subjects',
+                html: `<p class="text-sm font-bold text-gray-400 mb-4 uppercase tracking-widest text-center">${className}</p>` + html,
+                confirmButtonText: 'Save Assignments',
+                showCancelButton: true,
+                confirmButtonColor: '#4f46e5',
+                width: '500px',
+                preConfirm: () => {
+                    let subjectsData = {};
+                    $('.class-subject-select').each(function() {
+                        const subId = $(this).data('subject-id');
+                        const teacherId = $(this).val();
+                        if (teacherId) {
+                            subjectsData[subId] = teacherId;
+                        }
+                    });
+                    
+                    return {
+                        class_id: classId,
+                        subjects: subjectsData
+                    };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: 'auth/update_class_subjects.php',
+                        type: 'POST',
+                        data: result.value,
+                        dataType: 'json',
+                        success: function(updateRes) {
+                            if (updateRes.success) {
+                                window.showToast(updateRes.message, 'success');
+                            } else {
+                                Swal.fire('Error', updateRes.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Error', 'Network error while saving.', 'error');
+                        }
+                    });
+                }
+            });
+        },
+        error: function() {
+            Swal.fire('Error', 'Network error while fetching subjects.', 'error');
         }
     });
 }

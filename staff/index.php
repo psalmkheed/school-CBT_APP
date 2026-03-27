@@ -3,7 +3,7 @@ require __DIR__ . '/../auth/check.php';
 
 // Only staff can access this page
 if ($user->role !== 'staff') {
-      header("Location: /school_app/auth/login.php");
+      header("Location: {$base}auth/login.php");
       exit();
 }
 
@@ -15,7 +15,7 @@ $check_config->execute();
 if ($check_config->rowCount() < 1) {
       session_unset();
       session_destroy();
-      header("Location: /school_app/index.php");
+      header("Location: {$base}index.php");
 }
 ;
 // -------------------------------------------------------------//
@@ -38,16 +38,74 @@ $unread_stmt = $conn->prepare("SELECT COUNT(*) FROM broadcast WHERE recipient = 
 $unread_stmt->execute([':recipient' => $_SESSION['username']]);
 $unread_messages = (int) $unread_stmt->fetchColumn();
 
-// Count total students
-$count_students = $conn->prepare("SELECT COUNT(*) FROM users WHERE role = 'student' AND class = :class");
-$count_students->execute([':class' => $_SESSION['class'] ?? '']);
+// Count total students across all assigned classes
+$count_students = $conn->prepare("
+    SELECT COUNT(id) FROM users 
+    WHERE role = 'student' 
+    AND class IN (
+        SELECT c.class 
+        FROM class c 
+        WHERE c.teacher_id = :tid
+    )
+");
+$count_students->execute([':tid' => $user->id]);
 $total_students = (int) $count_students->fetchColumn();
 
+$active_session = $_SESSION['active_session'] ?? '';
+$active_term = $_SESSION['active_term'] ?? '';
+
 // Count total exams
-$count_exams = $conn->prepare("SELECT COUNT(*) FROM exams WHERE subject_teacher = :subject_teacher"); 
-$count_exams->execute([':subject_teacher' => $_SESSION['first_name'] . ' ' . $_SESSION['last_name']]);
+$count_exams = $conn->prepare("
+    SELECT COUNT(*) 
+    FROM exams e 
+    WHERE e.subject_teacher = :subject_teacher 
+    AND e.session = :session AND e.term = :term
+    AND e.class IN (
+        SELECT c.class 
+        FROM teacher_assignments ta 
+        JOIN class c ON ta.class_id = c.id 
+        WHERE ta.teacher_id = :tid
+    )
+"); 
+$count_exams->execute([
+    ':subject_teacher' => $_SESSION['first_name'] . ' ' . $_SESSION['surname'],
+    ':tid' => $user->id,
+    ':session' => $active_session,
+    ':term' => $active_term
+]);
 $total_exams = (int) $count_exams->fetchColumn();
 
+// --- Performance Analytics Data ---
+$perf_stmt = $conn->prepare("
+    SELECT e.subject, AVG(r.percentage) as avg_score, COUNT(r.id) as attempts
+    FROM exams e
+    JOIN exam_results r ON e.id = r.exam_id
+    WHERE e.subject_teacher = :teacher
+    AND e.session = :session AND e.term = :term
+    AND e.class IN (
+        SELECT c.class 
+        FROM teacher_assignments ta 
+        JOIN class c ON ta.class_id = c.id 
+        WHERE ta.teacher_id = :tid
+    )
+    GROUP BY e.id, e.subject
+    ORDER BY MAX(r.taken_at) DESC
+    LIMIT 10
+");
+$perf_stmt->execute([
+    ':teacher' => $_SESSION['first_name'] . ' ' . $_SESSION['surname'],
+    ':tid' => $user->id,
+    ':session' => $active_session,
+    ':term' => $active_term
+]);
+$performance_data = $perf_stmt->fetchAll(PDO::FETCH_OBJ);
+
+$chart_labels = [];
+$chart_values = [];
+foreach ($performance_data as $p) {
+      $chart_labels[] = $p->subject;
+      $chart_values[] = round($p->avg_score, 1);
+}
 ?>
 
 <?php require '../components/header.php'; ?>
@@ -59,7 +117,7 @@ $total_exams = (int) $count_exams->fetchColumn();
       <?php require '../components/navbar.php'; ?>
 
       <!-- Main Content -->
-      <div class="flex w-full" id="mainContent">
+      <div class="flex flex-col w-full" id="mainContent">
 
             <div class="fadeIn w-full md:p-8 p-4">
 
@@ -130,7 +188,7 @@ $total_exams = (int) $count_exams->fetchColumn();
                   </div>
 
                   <!-- Quick Action Cards -->
-                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
+                  <div class="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
 
                         <!-- Manage Students Card -->
                         <div class="ajax-card bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4 group hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
@@ -155,6 +213,19 @@ $total_exams = (int) $count_exams->fetchColumn();
                                     <p class="text-xs text-gray-400 mt-0.5">Set questions and view exam status</p>
                               </div>
                         </div>
+
+                        <div class="ajax-card bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4 group hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 cursor-pointer"
+                              data-url="<?= $base ?>staff/pages/study_materials.php?tab=All">
+      <div
+            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-400 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-200 flex-shrink-0">
+            <i class="bx bx-book-content text-2xl text-white"></i>
+      </div>
+      <div>
+            <h3 class="text-base font-semibold text-gray-800 group-hover:text-indigo-600 transition">Study Materials
+            </h3>
+            <p class="text-xs text-gray-400 mt-0.5">Upload notes and resources for students</p>
+      </div>
+</div>
                   </div>
 
                   <!-- Quick Actions Row -->
@@ -182,12 +253,12 @@ $total_exams = (int) $count_exams->fetchColumn();
                                     </div>
                                     <span class="text-xs font-semibold text-gray-600">Results</span>
                               </button>
-                               <button onclick="openSupportModal()"
+                               <button onclick="$('#staffStudyUpload').click()"
                                     class="bg-white border border-gray-100 rounded-xl p-4 flex flex-col items-center gap-2 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group">
                                     <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center group-hover:bg-emerald-100 transition">
-                                          <i class="bx bx-headphone-mic text-lg text-emerald-600"></i>
+                                          <i class="bx bx-book-content text-lg text-emerald-600"></i>
                                     </div>
-                                    <span class="text-xs font-semibold text-gray-600">Support</span>
+                                    <span class="text-xs font-semibold text-gray-600">Library</span>
                               </button>
                               <button onclick="$('#sideProfile').click()"
                                     class="bg-white border border-gray-100 rounded-xl p-4 flex flex-col items-center gap-2 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 cursor-pointer group">
@@ -199,43 +270,101 @@ $total_exams = (int) $count_exams->fetchColumn();
                         </div>
                   </div>
 
-                  <!-- Recent Messages -->
-                  <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
-                        <div class="flex items-center justify-between mb-4">
-                              <div class="flex items-center gap-2">
-                                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                                          <i class="bx-bell text-blue-600"></i>
-                                    </div>
-                                    <h4 class="text-sm font-semibold text-gray-800">Recent Messages</h4>
-                              </div>
-                              <?php if ($unread_messages > 0): ?>
-                                    <span class="text-xs bg-red-100 text-red-600 font-bold px-2 py-0.5 rounded-full"><?= $unread_messages ?> unread</span>
-                              <?php else: ?>
-                                    <span class="text-xs text-gray-400"><?= count($results) ?> messages</span>
-                              <?php endif ?>
-                        </div>
-                        <?php if (count($results) > 0): ?>
-                              <div class="space-y-3 max-h-64 overflow-y-auto">
-                                    <?php foreach (array_slice($results, 0, 5) as $msg): ?>
-                                          <div class="flex items-start gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition">
-                                                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                                                      <i class="bx-envelope text-green-600 text-sm"></i>
-                                                </div>
-                                                <div class="min-w-0">
-                                                      <p class="text-sm font-semibold text-gray-700 truncate"><?= htmlspecialchars($msg->subject ?? 'No Subject') ?></p>
-                                                      <p class="text-xs text-gray-400 mt-0.5"><?= htmlspecialchars($msg->username ?? '') ?><?php if (!empty($msg->created_at)): ?> • <?= date('M j', strtotime($msg->created_at)) ?><?php endif ?></p>
-                                                </div>
+                  <!-- Charts & Messages Row -->
+                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                        <!-- Performance Analytics Chart -->
+                        <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6">
+                              <div class="flex items-center justify-between mb-6">
+                                    <div class="flex items-center gap-3">
+                                          <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                                                <i class="bx bx bx-trending-up text-xl"></i>
                                           </div>
-                                    <?php endforeach ?>
-                              </div>
-                        <?php else: ?>
-                              <div class="text-center py-8">
-                                    <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                                          <i class="bx-envelope text-gray-400 text-xl"></i>
+                                          <div>
+                                                <h4 class="text-sm font-bold text-gray-800">Performance Analytics</h4>
+                                                <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Average Scores per Exam</p>
+                                          </div>
                                     </div>
-                                    <p class="text-sm text-gray-400">No messages yet</p>
                               </div>
-                        <?php endif ?>
+                              <div class="h-64">
+                                    <canvas id="performanceChart"></canvas>
+                                    <script>
+                                          (function() {
+                                                const ctx = document.getElementById('performanceChart').getContext('2d');
+                                                new Chart(ctx, {
+                                                      type: 'line',
+                                                      data: {
+                                                            labels: <?= json_encode(array_reverse($chart_labels)) ?>,
+                                                            datasets: [{
+                                                                  label: 'Avg Score (%)',
+                                                                  data: <?= json_encode(array_reverse($chart_values)) ?>,
+                                                                  borderColor: '#6366f1',
+                                                                  backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                                                                  borderWidth: 3,
+                                                                  fill: true,
+                                                                  tension: 0.4,
+                                                                  pointRadius: 4,
+                                                                  pointBackgroundColor: '#6366f1'
+                                                            }]
+                                                      },
+                                                      options: {
+                                                            responsive: true,
+                                                            maintainAspectRatio: false,
+                                                            plugins: { legend: { display: false } },
+                                                            scales: {
+                                                                  y: { beginAtZero: true, max: 100, grid: { color: 'rgba(0,0,0,0.03)' } },
+                                                                  x: { grid: { display: false } }
+                                                            }
+                                                      }
+                                                });
+                                          })();
+                                    </script>
+                              </div>
+                        </div>
+
+                        <!-- Recent Messages -->
+                        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+                              <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center gap-2">
+                                          <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                                <i class="bx-bell text-blue-600"></i>
+                                          </div>
+                                          <h4 class="text-sm font-semibold text-gray-800">Recent Messages</h4>
+                                    </div>
+                                    <?php if ($unread_messages > 0): ?>
+                                                                        <span class="text-xs bg-red-100 text-red-600 font-bold px-2 py-0.5 rounded-full"><?= $unread_messages ?>
+                                                                        unread</span>
+                                                                  <?php else: ?>
+                                                                  <span class="text-xs text-gray-400"><?= count($results) ?> messages</span>
+                                                                  <?php endif ?>
+                                                                  </div>
+                                                                  <?php if (count($results) > 0): ?>
+                                                                  <div class="space-y-3 max-h-64 overflow-y-auto">
+                                                                        <?php foreach (array_slice($results, 0, 5) as $msg): ?>
+                                                                        <div class="flex items-start gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition">
+                                                                              <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                                                    <i class="bx-envelope text-green-600 text-sm"></i>
+                                                                              </div>
+                                                                              <div class="min-w-0">
+                                                            <p class="text-sm font-semibold text-gray-700 truncate">
+                                                                  <?= htmlspecialchars($msg->subject ?? 'No Subject') ?>
+                                                            </p>
+                                                            <p class="text-xs text-gray-400 mt-0.5">
+                                                                  <?= htmlspecialchars($msg->username ?? '') ?> <?php if (!empty($msg->created_at)): ?> •
+                                                                        <?= date('M j', strtotime($msg->created_at)) ?> <?php endif ?>
+                                                            </p>
+                                                            </div>
+                                                            </div>
+                                                            <?php endforeach ?>
+                                                            </div>
+                                                            <?php else: ?>
+                                                            <div class="text-center py-8">
+                                                                  <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                                                                        <i class="bx-envelope text-gray-400 text-xl"></i>
+                                                                  </div>
+                                                                  <p class="text-sm text-gray-400">No messages yet</p>
+                                                            </div>
+                                                            <?php endif ?>
+                        </div>
                   </div>
 
             </div>

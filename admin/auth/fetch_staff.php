@@ -7,11 +7,17 @@ if ($page < 1) $page = 1;
 
 $offset = ($page - 1) * $limit;
 
-/* FETCH DATA */
+/* FETCH DATA WITH SPECIALIZATION */
 $stmt = $conn->prepare("
-    SELECT * FROM users 
-    WHERE role = 'staff' 
-    ORDER BY first_name ASC 
+    SELECT u.id, u.first_name, u.surname, u.user_id, u.class, u.password, u.role, u.profile_photo, u.created_at, u.status, 
+        GROUP_CONCAT(DISTINCT CONCAT(s.subject, ' [', c.class, ']') SEPARATOR ', ') as specialization
+    FROM users u
+    LEFT JOIN teacher_assignments ta ON u.id = ta.teacher_id
+    LEFT JOIN subjects s ON ta.subject_id = s.id
+    LEFT JOIN class c ON ta.class_id = c.id
+    WHERE u.role = 'staff' 
+    GROUP BY u.id, u.first_name, u.surname, u.user_id, u.class, u.password, u.role, u.profile_photo, u.created_at, u.status
+    ORDER BY u.first_name ASC 
     LIMIT :limit OFFSET :offset
 ");
 
@@ -28,7 +34,7 @@ $totalPages = ceil($totalRecords / $limit);
 
 <?php if (count($staff) > 0): ?>
     <?php $i = $offset; foreach ($staff as $row): 
-        $initials = strtoupper(substr($row->first_name, 0, 1) . substr($row->last_name, 0, 1));
+        $initials = strtoupper(substr($row->first_name, 0, 1) . substr($row->surname, 0, 1));
         $colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500', 'bg-indigo-500'];
         $randomColor = $colors[$row->id % count($colors)];
     ?>
@@ -36,22 +42,28 @@ $totalPages = ceil($totalRecords / $limit);
             <td class="px-4 py-3">
                 <div class="flex items-center gap-3">
                     <?php if (!empty($row->profile_photo)): ?>
-                        <img src="/school_app/uploads/profile_photos/<?= $row->profile_photo ?>" class="w-10 h-10 rounded-full object-cover shadow-sm ring-2 ring-white">
+                                                <img src="<?= $base ?>uploads/profile_photos/<?= $row->profile_photo ?>"
+                                        class="w-10 h-10 rounded-full object-cover shadow-sm ring-2 ring-white">
                     <?php else: ?>
                         <div class="w-10 h-10 rounded-full <?= $randomColor ?> flex items-center justify-center text-white text-xs font-bold shadow-sm ring-2 ring-white">
                             <?= $initials ?>
                         </div>
                     <?php endif; ?>
                     <div>
-                        <p class="staff-fullname text-sm font-bold text-gray-800"><?= htmlspecialchars($row->first_name . ' ' . $row->last_name) ?></p>
+                        <p class="staff-fullname text-sm font-bold text-gray-800"><?= htmlspecialchars(ucfirst($row->first_name) . ' ' . ucfirst($row->surname)) ?></p>
                         <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-tight"><?= htmlspecialchars($row->user_id) ?></p>
                     </div>
                 </div>
             </td>
             <td class="px-4 py-3">
-                <span class="px-3 py-1 bg-gray-100 rounded-lg text-[10px] font-mono font-black text-gray-500 uppercase">
+                <span class="px-3 py-1 bg-gray-100 rounded-lg text-[10px] font-mono font-semibold text-gray-500 uppercase">
                     <?= htmlspecialchars($row->user_id) ?>
                 </span>
+            </td>
+            <td class="px-4 py-3">
+                <p class="text-[10px] font-bold text-emerald-600 max-w-[200px] truncate" title="<?= $row->specialization ?>">
+                    <?= $row->specialization ? $row->specialization : '<span class="text-gray-300">No assignment</span>' ?>
+                </p>
             </td>
             <td class="px-4 py-3 staff-status-cell">
                 <?php if($row->status == 1): ?>
@@ -68,7 +80,7 @@ $totalPages = ceil($totalRecords / $limit);
             </td>
             <td class="px-4 py-3 text-right">
                 <div class="flex items-center justify-end gap-2 text-gray-400 group-hover:text-gray-600 transition-colors">
-                    <button class="reset-btn p-2 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl transition cursor-pointer" data-id="<?= $row->id ?>" data-name="<?= htmlspecialchars($row->first_name . ' ' . $row->last_name) ?>"
+                    <button class="reset-btn p-2 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl transition cursor-pointer" data-id="<?= $row->id ?>" data-name="<?= htmlspecialchars($row->first_name . ' ' . $row->surname) ?>"
                         data-tippy-content="Reset Password">
                         <i class="bx-key text-xl"></i>
                     </button>
@@ -85,7 +97,7 @@ $totalPages = ceil($totalRecords / $limit);
 
     <!-- PAGINATION -->
     <tr>
-        <td colspan="4" class="p-6 bg-gray-50/30">
+        <td colspan="5" class="p-6 bg-gray-50/30">
             <div class="flex justify-center items-center gap-2">
                 <?php if ($page > 1): ?>
                     <button class="staff-page-btn w-9 h-9 shrink-0 rounded-xl border border-gray-200 bg-white flex items-center justify-center text-gray-500 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition shadow-sm cursor-pointer" data-page="<?= $page - 1 ?>">

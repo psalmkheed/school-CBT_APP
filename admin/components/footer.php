@@ -4,7 +4,7 @@
   
 </body>
 
-<script src="/school_app/src/scripts.js?v=<?= time() ?>"></script>
-<script src="/school_app/src/modal.js?v=<?= time() ?>"></script>
+<script src="<?= $base ?>src/scripts.js?v=<?= time() ?>"></script>
+<script src="<?= $base ?>src/modal.js?v=<?= time() ?>"></script>
 
 </html>

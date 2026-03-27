@@ -27,7 +27,7 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
                   <tr>
                         <th class="p-2">#</th>
                         <th class="p-2">First Name</th>
-                        <th class="p-2">Last Name</th>
+                        <th class="p-2">Surname</th>
                         <th class="p-2">User ID</th>
                         <th class="p-2">Action</th>
                   </tr>
@@ -41,7 +41,7 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
                                     <?= ++$i ?>
                               </td>
                               <td class="p-2"><?= ucfirst($row->first_name) ?></td>
-                              <td class="p-2"><?= ucfirst($row->last_name) ?></td>
+                              <td class="p-2"><?= ucfirst($row->surname) ?></td>
                               <td class="p-2"><?= $row->user_id ?></td>
                               <td class="p-2 flex gap-2">
 
@@ -142,32 +142,51 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
                   dataType: 'json',
                   data: { id: userId },
                   success: function (res) {
-
                         if (!res.success) {
                               Swal.fire('Error', 'Unable to fetch data', 'error');
                               return;
                         }
 
+                        let subjectsHtml = '<div class="mt-4 text-left"><p class="text-xs font-bold text-gray-400 uppercase mb-2">Assign Subjects</p><div class="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 bg-gray-50 rounded-xl border border-gray-100">';
+                        res.all_subjects.forEach(sub => {
+                              const checked = res.assigned_subjects.includes(sub.id.toString()) || res.assigned_subjects.includes(parseInt(sub.id)) ? 'checked' : '';
+                              subjectsHtml += `
+                                    <label class="flex items-center gap-2 p-2 hover:bg-white rounded-lg cursor-pointer transition-colors border border-transparent hover:border-orange-100">
+                                          <input type="checkbox" class="subject-checkbox" value="${sub.id}" ${checked}>
+                                          <span class="text-xs font-semibold text-gray-700">${sub.subject}</span>
+                                    </label>
+                              `;
+                        });
+                        subjectsHtml += '</div></div>';
+
                         Swal.fire({
                               title: 'Edit Staff',
                               html: `
-                    <input id="swal_first" class="swal2-input" placeholder="First Name" value="${res.data.first_name}">
-                    <input id="swal_last" class="swal2-input" placeholder="Last Name" value="${res.data.last_name}">
-                    
-                `,
+                                    <div class="flex flex-col gap-4">
+                                          <input id="swal_first" class="swal2-input !m-0" placeholder="First Name" value="${res.data.first_name}">
+                                          <input id="swal_last" class="swal2-input !m-0" placeholder="Surname" value="${res.data.surname}">
+                                          ${subjectsHtml}
+                                    </div>
+                              `,
                               confirmButtonColor: '#FF6900',
                               cancelButtonColor: '#6b7280',
                               showCancelButton: true,
-                              confirmButtonText: 'Save',
+                              confirmButtonText: 'Save Changes',
+                              width: '450px',
                               preConfirm: () => {
+                                    const selectedSubjects = [];
+                                    $('.subject-checkbox:checked').each(function() {
+                                          selectedSubjects.push($(this).val());
+                                    });
                                     return {
                                           id: userId,
                                           first_name: $('#swal_first').val(),
-                                          last_name: $('#swal_last').val(),
+                                          surname: $('#swal_last').val(),
+                                          subjects: selectedSubjects,
+                                          status: res.data.status
                                     };
                               }
                         }).then((result) => {
-
                               if (!result.isConfirmed) return;
 
                               $.ajax({
@@ -176,14 +195,13 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
                                     dataType: 'json',
                                     data: result.value,
                                     success: function (update) {
-
                                           if (!update.success) {
                                                 Swal.fire('Failed', update.message, 'error');
                                                 return;
                                           }
 
                                           row.find('td:eq(1)').text(result.value.first_name);
-                                          row.find('td:eq(2)').text(result.value.last_name);
+                                          row.find('td:eq(2)').text(result.value.surname);
 
                                           Swal.fire({
                                                 icon: 'success',
@@ -191,10 +209,11 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
                                                 text: 'Staff record updated',
                                                 timer: 1300,
                                                 showConfirmButton: false
-                                    });
+                                          });
+                                    }
                               });
-                        }
-                  });
+                        });
+                  }
             });
 
             $('#adminStaffSearch').on('input', function() {

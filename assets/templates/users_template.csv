@@ -1,0 +1,4 @@
+first_name,last_name,user_id,password,role,class
+John,Doe,STU/001,password,student,JSS1
+Jane,Smith,STAFF/001,staff123,staff,
+Admin,Helper,ADMIN/002,admin123,admin,

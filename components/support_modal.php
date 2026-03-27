@@ -46,7 +46,7 @@ $(document).ready(function() {
         const message = $('#supportMessage').val();
         const submitBtn = $(this).find('button[type="submit"]');
         
-        submitBtn.prop('disabled', true).html('<i class="bx bx-loader-alt animate-spin text-xl"></i> Sending...');
+        submitBtn.prop('disabled', true).html('<i class="bx bxs-loader-dots animate-spin text-xl"></i> Sending...');
         
         $.ajax({
             url: '../auth/send_support.php', // I will create this file

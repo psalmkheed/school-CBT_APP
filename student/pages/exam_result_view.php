@@ -69,7 +69,7 @@ $dashOffset = $circumference - ($percentage / 100) * $circumference;
         <button onclick="
                 $('#mainContent').fadeOut(200, function(){
                     $.ajax({
-                        url: '/school_app/student/pages/exam_history.php',
+                        url: 'pages/exam_history.php',
                         type: 'POST',
                         success: function(r){ $('#mainContent').html(r).fadeIn(200); }
                     });
@@ -82,7 +82,7 @@ $dashOffset = $circumference - ($percentage / 100) * $circumference;
         <button onclick="
                 $('#mainContent').fadeOut(200, function(){
                     $.ajax({
-                        url: '/school_app/student/pages/exam_history.php',
+                        url: 'pages/exam_history.php',
                         type: 'POST',
                         success: function(r){ $('#mainContent').html(r).fadeIn(200); }
                     });
@@ -108,14 +108,14 @@ $dashOffset = $circumference - ($percentage / 100) * $circumference;
                     <div class="size-20 rounded-[1.75rem] bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center mx-auto mb-5 shadow-xl">
                         <i class="bx bx-<?= $icon ?> text-4xl"></i>
                     </div>
-                    <h2 class="text-3xl font-black mb-1 tracking-tight"><?= $isPassed ? 'Congratulations!' : 'Heads Up!' ?></h2>
+                    <h2 class="text-3xl font-semibold mb-1 tracking-tight"><?= $isPassed ? 'Congratulations!' : 'Heads Up!' ?></h2>
                     <p class="text-white/80 font-medium text-sm"><?= $msg ?></p>
                 </div>
             </div>
 
             <!-- Score Ring -->
             <div class="flex flex-col items-center py-10 px-6 bg-white">
-                <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mb-6">Final Score</p>
+                <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-[0.3em] mb-6">Final Score</p>
                 <div class="relative size-44 mb-6">
                     <svg class="size-44 -rotate-90" viewBox="0 0 120 120">
                         <circle cx="60" cy="60" r="54" fill="none" stroke="#f3f4f6" stroke-width="10"/>
@@ -126,7 +126,7 @@ $dashOffset = $circumference - ($percentage / 100) * $circumference;
                             style="transition: stroke-dashoffset 1.2s cubic-bezier(.4,0,.2,1)"/>
                     </svg>
                     <div class="absolute inset-0 flex flex-col items-center justify-center">
-                        <span class="text-4xl font-black text-gray-800 tabular-nums leading-none"><?= round($percentage) ?><span class="text-xl text-gray-300">%</span></span>
+                        <span class="text-4xl font-semibold text-gray-800 tabular-nums leading-none"><?= round($percentage) ?><span class="text-xl text-gray-300">%</span></span>
                         <span class="text-xs font-bold text-gray-400 mt-1"><?= $result->score ?> / <?= $result->total_questions ?></span>
                     </div>
                 </div>
@@ -134,12 +134,12 @@ $dashOffset = $circumference - ($percentage / 100) * $circumference;
                 <!-- Stat Pills -->
                 <div class="grid grid-cols-2 gap-3 w-full mb-8">
                     <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100 text-center">
-                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Subject</p>
-                        <p class="text-sm font-black text-gray-800 leading-tight"><?= htmlspecialchars($result->subject) ?></p>
+                        <p class="text-[9px] font-semibold text-gray-400 uppercase tracking-widest mb-1">Subject</p>
+                        <p class="text-sm font-semibold text-gray-800 leading-tight"><?= htmlspecialchars($result->subject) ?></p>
                     </div>
                     <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100 text-center">
-                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">Exam Type</p>
-                        <p class="text-sm font-black text-gray-800 leading-tight"><?= htmlspecialchars($result->exam_type) ?></p>
+                        <p class="text-[9px] font-semibold text-gray-400 uppercase tracking-widest mb-1">Exam Type</p>
+                        <p class="text-sm font-semibold text-gray-800 leading-tight"><?= htmlspecialchars($result->exam_type) ?></p>
                     </div>
                 </div>
 
@@ -148,13 +148,13 @@ $dashOffset = $circumference - ($percentage / 100) * $circumference;
                     <?php if (!empty($result->student_answers)): ?>
                         <button id="toggleReviewBtn"
                             onclick="document.getElementById('reviewSection').classList.toggle('hidden'); const h = document.getElementById('reviewSection').classList.contains('hidden'); this.innerHTML = h ? '<i class=\'bx bx-eye\'></i>&nbsp; View Performance Review' : '<i class=\'bx bx-eye-slash\'></i>&nbsp; Hide Review'"
-                            class="w-full py-4 bg-white border-2 border-<?= $color ?>-500 text-<?= $color ?>-600 rounded-2xl font-black text-sm hover:bg-<?= $color ?>-50 transition-all cursor-pointer flex items-center justify-center gap-2">
+                            class="w-full py-4 bg-white border-2 border-<?= $color ?>-500 text-<?= $color ?>-600 rounded-2xl font-semibold text-sm hover:bg-<?= $color ?>-50 transition-all cursor-pointer flex items-center justify-center gap-2">
                             <i class="bx bx-eye"></i>&nbsp; View Performance Review
                         </button>
                     <?php endif; ?>
 
                     <button onclick="goHome()"
-                        class="w-full py-4 bg-gray-800 text-white rounded-2xl font-black text-sm hover:bg-black transition-all shadow-lg cursor-pointer">
+                        class="w-full py-4 bg-gray-800 text-white rounded-2xl font-semibold text-sm hover:bg-black transition-all shadow-lg cursor-pointer">
                         Back to Dashboard
                     </button>
                 </div>
@@ -172,7 +172,7 @@ $dashOffset = $circumference - ($percentage / 100) * $circumference;
                     <i class="bx bx-check-circle text-xl"></i>
                 </div>
                 <div>
-                    <h3 class="text-lg font-black text-gray-800">Performance Review</h3>
+                    <h3 class="text-lg font-semibold text-gray-800">Performance Review</h3>
                     <p class="text-xs text-gray-400 font-medium">Question-by-question breakdown</p>
                 </div>
             </div>
@@ -205,24 +205,24 @@ $dashOffset = $circumference - ($percentage / 100) * $circumference;
                 <div class="bg-white rounded-[2rem] p-6 border border-gray-100 shadow-sm">
                     <!-- Question Header -->
                     <div class="flex items-center justify-between mb-5">
-                        <span class="text-[10px] font-black text-gray-300 uppercase tracking-widest">Q<?= $index + 1 ?></span>
+                        <span class="text-[10px] font-semibold text-gray-300 uppercase tracking-widest">Q<?= $index + 1 ?></span>
                         <div class="flex items-center gap-2">
                             <?php if ($student_ans): ?>
                                         <span
-                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wide
+                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-semibold uppercase tracking-wide
                                                                                                                             <?= $isCorrect ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600' ?>">
                                     <i class="bx <?= $isCorrect ? 'bx-check' : 'bx-x' ?> text-sm"></i>
                                     <?= $isCorrect ? 'Correct' : 'Incorrect' ?>
                                 </span>
                                 <?php else: ?>
                                                 <span
-                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wide bg-gray-100 text-gray-400">
+                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-semibold uppercase tracking-wide bg-gray-100 text-gray-400">
                                                     <i class="bx bx-minus text-sm"></i> Skipped
                                                 </span>
                                         <?php endif; ?>
             <!-- AI Explain Button -->
             <button
-                class="ai-explain-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wide bg-violet-50 text-violet-600 hover:bg-violet-100 transition-all cursor-pointer border border-violet-100"
+                class="ai-explain-btn inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-semibold uppercase tracking-wide bg-violet-50 text-violet-600 hover:bg-violet-100 transition-all cursor-pointer border border-violet-100"
                 data-question="<?= $js_question ?>" data-a="<?= $js_a ?>" data-b="<?= $js_b ?>" data-c="<?= $js_c ?>"
             data-d="<?= $js_d ?>" data-correct="<?= $js_correct ?>" data-subject="<?= $js_subject ?>"
             data-index="<?= $index ?>">
@@ -240,14 +240,14 @@ $dashOffset = $circumference - ($percentage / 100) * $circumference;
                         <div class="space-y-3">
                             <div class="flex items-center gap-2 mb-2">
                                 <div class="px-3 py-1 bg-amber-100 rounded-lg">
-                                    <span class="text-[9px] font-black text-amber-600 uppercase tracking-widest">✏️ Fill in the Blank</span>
+                                    <span class="text-[9px] font-semibold text-amber-600 uppercase tracking-widest">✏️ Fill in the Blank</span>
                                 </div>
                             </div>
                             <!-- Student's Answer -->
                             <div
                                 class="flex items-center gap-3 p-3 rounded-2xl border <?= $student_ans ? ($isCorrect ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200') : 'bg-gray-50 border-gray-200' ?>">
                                 <div
-                                    class="size-8 shrink-0 rounded-xl flex items-center justify-center font-black text-xs <?= $student_ans ? ($isCorrect ? 'bg-green-600 text-white' : 'bg-red-500 text-white') : 'bg-gray-200 text-gray-400' ?>">
+                                    class="size-8 shrink-0 rounded-xl flex items-center justify-center font-semibold text-xs <?= $student_ans ? ($isCorrect ? 'bg-green-600 text-white' : 'bg-red-500 text-white') : 'bg-gray-200 text-gray-400' ?>">
                                     <i class="bx <?= $student_ans ? ($isCorrect ? 'bx-check' : 'bx-x') : 'bx-minus' ?> text-sm"></i>
                                 </div>
                                 <div class="flex-1">
@@ -269,7 +269,7 @@ $dashOffset = $circumference - ($percentage / 100) * $circumference;
                             <?php if (!$isCorrect): ?>
                                 <div class="flex items-center gap-3 p-3 rounded-2xl border bg-green-50 border-green-200">
                                     <div
-                                        class="size-8 shrink-0 rounded-xl flex items-center justify-center font-black text-xs bg-green-600 text-white">
+                                        class="size-8 shrink-0 rounded-xl flex items-center justify-center font-semibold text-xs bg-green-600 text-white">
                                         <i class="bx bx-check text-sm"></i>
                                     </div>
                                     <div class="flex-1">
@@ -307,7 +307,7 @@ $dashOffset = $circumference - ($percentage / 100) * $circumference;
                                 }
                                 ?>
                                 <div class="flex items-center gap-3 p-3 rounded-2xl border <?= $optStyle ?>">
-                                    <div class="size-8 shrink-0 rounded-xl flex items-center justify-center font-black text-xs <?= $badgeStyle ?>">
+                                    <div class="size-8 shrink-0 rounded-xl flex items-center justify-center font-semibold text-xs <?= $badgeStyle ?>">
                                         <?= $key ?>
                                     </div>
                                     <span class="text-sm <?= $textStyle ?> leading-snug"><?= $val ?></span>
@@ -323,7 +323,7 @@ $dashOffset = $circumference - ($percentage / 100) * $circumference;
         <div class="size-7 rounded-lg bg-violet-600 flex items-center justify-center text-white shrink-0">
             <i class="bx bx-robot text-sm"></i>
         </div>
-        <span class="text-[10px] font-black text-violet-500 uppercase tracking-widest">AI Explanation</span>
+        <span class="text-[10px] font-semibold text-violet-500 uppercase tracking-widest">AI Explanation</span>
     </div>
     <p id="ai-text-<?= $index ?>" class="text-sm text-violet-900 leading-relaxed font-medium"></p>
 </div>
@@ -355,12 +355,12 @@ $(document).on('click', '.ai-explain-btn', function() {
     }
 
     // Show loading state
-    btn.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin text-sm"></i> Thinking...');
+    btn.prop('disabled', true).html('<i class="bx bxs-loader-dots bx-spin text-sm"></i> Thinking...');
     panel.removeClass('hidden').hide().slideDown(250);
     textEl.html('<span class="text-violet-400 italic text-xs">Generating explanation...</span>');
 
     $.ajax({
-        url: '/school_app/student/auth/ai_explain.php',
+        url: 'auth/ai_explain.php',
         type: 'POST',
         data: {
             question  : btn.data('question'),
@@ -388,12 +388,12 @@ $(document).on('click', '.ai-explain-btn', function() {
                 btn.html('<i class="bx bx-robot text-sm"></i> Hide');
             } else {
                 textEl.html(`<span class="text-red-500 text-xs font-bold">${res.message}</span>`);
-                btn.html('<i class="bx bx-bot text-sm"></i> Ask AI');
+                btn.html('<i class="bx bx-robot text-sm"></i> Ask AI');
             }
         },
         error: function() {
             textEl.html('<span class="text-red-500 text-xs font-bold">Network error. Please try again.</span>');
-            btn.html('<i class="bx bx-bot text-sm"></i> Ask AI');
+            btn.html('<i class="bx bx-robot text-sm"></i> Ask AI');
         },
         complete: function() {
             btn.prop('disabled', false);

@@ -1,6 +1,6 @@
 $(function () {
       // Base URL for the application
-      const BASE_URL = '/school_app/';
+      const BASE_URL = window.APP_URL || '/';
 
 
       // Create Session script
@@ -117,7 +117,7 @@ $(function () {
                   if (!session || !term) return;
 
                   $.ajax({
-                        url: '/school_app/admin/auth/check_session.php',
+                        url: BASE_URL + 'admin/auth/check_session.php',
                         method: 'POST',
                         data: { session, term },
                         dataType: 'json',
@@ -144,7 +144,7 @@ $(function () {
                   e.preventDefault();
 
                   $.ajax({
-                        url: '/school_app/admin/auth/sch_session.php',
+                        url: BASE_URL + 'admin/auth/sch_session.php',
                         method: 'POST',
                         data: $(this).serialize(),
                         dataType: 'json',
@@ -205,7 +205,7 @@ $(function () {
             e.preventDefault();
 
             $.ajax({
-                  url: '/school_app/admin/auth/add_subject.php',
+                  url: BASE_URL + 'admin/auth/add_subject.php',
                   method: 'POST',
                   data: $(this).serialize(),
                   dataType: 'json',
@@ -255,7 +255,7 @@ $(function () {
             e.preventDefault();
 
             $.ajax({
-                  url: '/school_app/admin/auth/create_exam.php',
+                  url: BASE_URL + 'admin/auth/create_exam.php',
                   method: 'POST',
                   data: $(this).serialize(),
                   dataType: 'json',
@@ -284,7 +284,7 @@ $(function () {
       // aJAX page load for Examination
       function loadPage(page = 1) {
             $.ajax({
-                  url: "/school_app/admin/auth/fetch_exams.php",
+                  url: BASE_URL + "admin/auth/fetch_exams.php",
                   method: "POST",
                   data: { page: page },
                   success: function (data) {
@@ -321,7 +321,7 @@ $(function () {
             }).then((result) => {
                   if (result.isConfirmed) {
                         $.ajax({
-                              url: '/school_app/admin/auth/delete_exam.php',
+                              url: BASE_URL + 'admin/auth/delete_exam.php',
                               method: 'POST',
                               data: { id: id },
                               dataType: 'json',
@@ -372,7 +372,7 @@ $(function () {
             }).then((result) => {
                   if (result.isConfirmed) {
                         $.ajax({
-                              url: '/school_app/admin/auth/update_exam_status.php',
+                              url: BASE_URL + 'admin/auth/update_exam_status.php',
                               method: 'POST',
                               data: { id: id, status: nextStatus },
                               dataType: 'json',
@@ -411,7 +411,7 @@ $(function () {
             e.preventDefault();
 
             $.ajax({
-                  url: '/school_app/admin/auth/create_class.php',
+                  url: BASE_URL + 'admin/auth/create_class.php',
                   method: 'POST',
                   data: $(this).serialize(),
                   dataType: 'json',

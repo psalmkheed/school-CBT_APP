@@ -14,8 +14,8 @@ if (!empty($result->profile_photo)) {
       $photoSrc = '../uploads/profile_photos/' . $result->profile_photo;
 }
 
-$initials = strtoupper(substr($result->first_name ?? 'U', 0, 1) . substr($result->last_name ?? 'N', 0, 1));
-$fullName = ucfirst($result->first_name ?? '') . ' ' . ucfirst($result->last_name ?? '');
+$initials = strtoupper(substr($result->first_name ?? 'U', 0, 1) . substr($result->surname ?? 'N', 0, 1));
+$fullName = ucfirst($result->first_name ?? '') . ' ' . ucfirst($result->surname ?? '');
 $colors = ['#0d6efd', '#198754', '#6f42c1', '#dc3545'];
 $avatarBg = $colors[$result->id % count($colors)];
 
@@ -195,7 +195,7 @@ if ($result->role === 'staff') {
                                     </div>
                               </div>
 
-                              <!-- Last Name -->
+                              <!-- Surname -->
                               <div class="flex flex-col gap-1">
                                     <label class="text-xs font-medium text-gray-400 uppercase tracking-wide">Last
                                           Name</label>
@@ -203,7 +203,7 @@ if ($result->role === 'staff') {
                                           class="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3">
                                           <i class="bx-user <?= $themeIconSmall ?> text-lg shrink-0"></i>
                                           <span
-                                                class="text-gray-800 font-semibold text-sm"><?= htmlspecialchars(ucfirst($result->last_name ?? '—')) ?></span>
+                                                class="text-gray-800 font-semibold text-sm"><?= htmlspecialchars(ucfirst($result->surname ?? '—')) ?></span>
                                     </div>
                               </div>
 
@@ -253,6 +253,7 @@ if ($result->role === 'staff') {
                   </div>
 
                   <!-- Account Security Card -->
+                  <?php if ($_SESSION['role'] !== 'student'): ?>
                   <div class="bg-white border border-gray-100 rounded-2xl shadow-sm p-6">
                         <h3
                               class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-5 flex items-center gap-2">
@@ -271,14 +272,13 @@ if ($result->role === 'staff') {
                                           <p class="text-xs text-gray-400">Manage your account security</p>
                                     </div>
                               </div>
-                              <?php if ($_SESSION['role'] !== 'student'): ?>
                               <button type="button"
                                     class="openPasswordModal text-xs <?= $themeBg ?> <?= $themeText ?> hover:bg-<?= $themeColor ?>-200 transition-colors font-bold px-4 py-1.5 rounded-full cursor-pointer">
                                     Change Password
                               </button>
-                              <?php endif ?>
                         </div>
                   </div>
+                  <?php endif ?>
 
             </div>
       </div>

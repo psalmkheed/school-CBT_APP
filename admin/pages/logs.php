@@ -2,15 +2,15 @@
 require '../../auth/check.php';
 
 // Only admins can access this page
-if ($_SESSION['role'] !== 'admin') {
-    header("Location: /school_app/auth/login.php");
+if (!in_array($_SESSION['role'], ['admin', 'super'])) {
+    header("Location: {$base}auth/login.php");
     exit();
 }
 
 try {
     // Fetch logs with user details
     $stmt = $conn->prepare("
-        SELECT L.*, U.first_name, U.last_name, U.role as user_role 
+        SELECT L.*, U.first_name, U.surname, U.role as user_role 
         FROM activity_logs L
         JOIN users U ON L.user_id = U.id
         ORDER BY L.created_at DESC
@@ -31,7 +31,7 @@ try {
                 <i class="bx bx-checklist text-white text-2xl"></i>
             </div>
             <div>
-                <h3 class="text-2xl font-black text-gray-800 tracking-tight">System Activity Logs</h3>
+                <h3 class="text-2xl font-semibold text-gray-800 tracking-tight">System Activity Logs</h3>
                 <p class="text-sm text-gray-400 font-medium tracking-wide">Monitor all administrative and user activities</p>
             </div>
         </div>
@@ -56,7 +56,7 @@ try {
             </div>
             <div>
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Active (24h)</p>
-                <h4 class="text-xl font-black text-gray-800"><?= $countDay ?> <span class="text-xs font-normal text-gray-400 ml-1">Logs</span></h4>
+                <h4 class="text-xl font-semibold text-gray-800"><?= $countDay ?> <span class="text-xs font-normal text-gray-400 ml-1">Logs</span></h4>
             </div>
         </div>
         <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
@@ -65,7 +65,7 @@ try {
             </div>
             <div>
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Security Risks</p>
-                <h4 class="text-xl font-black text-gray-800"><?= $countCrit ?> <span class="text-xs font-normal text-gray-400 ml-1">Incidents</span></h4>
+                <h4 class="text-xl font-semibold text-gray-800"><?= $countCrit ?> <span class="text-xs font-normal text-gray-400 ml-1">Incidents</span></h4>
             </div>
         </div>
         <div class="bg-white p-5 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
@@ -74,7 +74,7 @@ try {
             </div>
             <div>
                 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Logged Actors</p>
-                <h4 class="text-xl font-black text-gray-800"><?= $uniqueUsers ?> <span class="text-xs font-normal text-gray-400 ml-1">Users</span></h4>
+                <h4 class="text-xl font-semibold text-gray-800"><?= $uniqueUsers ?> <span class="text-xs font-normal text-gray-400 ml-1">Users</span></h4>
             </div>
         </div>
     </div>
@@ -98,7 +98,7 @@ try {
                         <tr>
                             <td colspan="6" class="px-6 py-12 text-center text-gray-400">
                                 <div class="flex flex-col items-center gap-2">
-                                    <i class="bx bx-loader-alt animate-spin text-3xl"></i>
+                                    <i class="bx bxs-loader-dots animate-spin text-3xl"></i>
                                     <p class="font-bold">No activity logs found yet.</p>
                                 </div>
                             </td>
@@ -115,10 +115,10 @@ try {
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
                                         <div class="size-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold text-[10px]">
-                                            <?= strtoupper($log->first_name[0] . $log->last_name[0]) ?>
+                                            <?= strtoupper($log->first_name[0] . $log->surname[0]) ?>
                                         </div>
                                         <div class="flex flex-col">
-                                            <span class="text-xs font-semibold text-gray-800"><?= $log->first_name ?> <?= $log->last_name ?></span>
+                                            <span class="text-xs font-semibold text-gray-800"><?= $log->first_name ?> <?= $log->surname ?></span>
                                             <span class="text-[9px] font-bold uppercase tracking-widest <?= $log->user_role === 'admin' ? 'text-red-500' : 'text-blue-500' ?>">
                                                 <?= $log->user_role ?>
                                             </span>
@@ -143,7 +143,7 @@ try {
                                         default    => 'bg-emerald-100 text-emerald-700 border-emerald-200'
                                     };
                                     ?>
-                                    <span class="px-2 py-0.5 rounded-full border text-[9px] font-black uppercase tracking-widest <?= $badgeClass ?>">
+                                    <span class="px-2 py-0.5 rounded-full border text-[9px] font-semibold uppercase tracking-widest <?= $badgeClass ?>">
                                         <?= $log->severity ?>
                                     </span>
                                 </td>

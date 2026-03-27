@@ -14,8 +14,24 @@ $subject_rows = $subject_populate->fetchAll(PDO::FETCH_OBJ);
 
 $user_populate = $conn->prepare("SELECT * FROM users WHERE role = 'staff' ORDER BY first_name ASC");
 $user_populate->execute();
-
 $user_rows = $user_populate->fetchAll(PDO::FETCH_OBJ);
+
+// Fetch teacher-subject-class mapping
+$mapping_stmt = $conn->query("
+    SELECT s.subject, c.class, CONCAT(u.first_name, ' ', u.surname) as teacher_name
+    FROM teacher_assignments ta
+    JOIN subjects s ON ta.subject_id = s.id
+    JOIN class c ON ta.class_id = c.id
+    JOIN users u ON ta.teacher_id = u.id
+");
+$mappings = $mapping_stmt->fetchAll(PDO::FETCH_ASSOC);
+$subject_teachers = [];
+foreach ($mappings as $m) {
+      $key = $m['subject'] . '|' . $m['class'];
+      if (!isset($subject_teachers[$key]))
+            $subject_teachers[$key] = [];
+      $subject_teachers[$key][] = $m['teacher_name'];
+}
 ?>
 <div class="w-full p-4 md:p-8">
       <!-- container header -->
@@ -110,8 +126,8 @@ $user_rows = $user_populate->fetchAll(PDO::FETCH_OBJ);
             <!-- Modal Body -->
             <form id="add-subject-form" class="p-6 flex flex-col gap-5">
                   <div class="flex flex-col gap-1.5">
-                        <label for="subject" class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Subject</label>
-                        <input type="text" id="subject" name="subject"
+                        <label for="new_subject_name" class="text-xs font-semibold text-gray-500 uppercase tracking-wide">Subject Name</label>
+                        <input type="text" id="new_subject_name" name="subject"
                               class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition"
                               placeholder="E.g. Chemistry, Commerce...">
                   </div>
@@ -125,7 +141,7 @@ $user_rows = $user_populate->fetchAll(PDO::FETCH_OBJ);
 
 <!-- ------------------------------ -->
 
-<script src="/school_app/src/modal.js"></script>
+<script src="<?= $base ?>src/modal.js"></script>
 
 
 <!-- Create Exam Modal -->
@@ -216,8 +232,8 @@ $user_rows = $user_populate->fetchAll(PDO::FETCH_OBJ);
                                      class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent transition bg-white">
                                     <option disabled selected value="">Select Teacher</option>
                                     <?php foreach ($user_rows as $staff): ?>
-                                          <option value="<?= $staff->first_name . ' ' . $staff->last_name ?>">
-                                                <?= $staff->first_name . ' ' . $staff->last_name ?>
+                                          <option value="<?= $staff->first_name . ' ' . $staff->surname ?>">
+                                                <?= $staff->first_name . ' ' . $staff->surname ?>
                                           </option>
                                     <?php endforeach ?>
                               </select>
@@ -261,4 +277,38 @@ $user_rows = $user_populate->fetchAll(PDO::FETCH_OBJ);
                   </button>
             </form>
       </div>
+    <script>
+        const subjectTeachers = <?= json_encode($subject_teachers) ?>;
+
+      function filterTeachers() {
+            const sub = $('#subject').val();
+            const cls = $('#class').val();
+            const teacherSelect = $('#subject_teacher');
+
+            if (!sub || !cls) return;
+
+            const key = sub + '|' + cls;
+            const teachers = subjectTeachers[key] || [];
+
+            // If no specific teacher is assigned to this Sub-Class pair, show all as fallback
+            if (teachers.length === 0) {
+                  teacherSelect.find('option').show();
+                  return;
+            }
+
+            teacherSelect.find('option:not(:first)').each(function () {
+                  const teacherName = $(this).val();
+                  if (teachers.includes(teacherName)) {
+                        $(this).show();
+                  } else {
+                        $(this).hide();
+                  }
+            });
+
+            // Reset selection to placeholder
+            teacherSelect.val("");
+      }
+
+      $('#subject, #class').on('change', filterTeachers);
+</script>
 </div>

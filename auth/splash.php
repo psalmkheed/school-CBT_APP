@@ -4,14 +4,14 @@ require '../connections/db.php';
 // Redirect based on existing session
 if (isset($_SESSION['user_id'])) {
     $role = strtolower($_SESSION['role'] ?? '');
-    if ($role === 'admin') {
-        header("Location: /school_app/admin/index.php");
+    if ($role === 'admin' || $role === 'super') {
+        header("Location: {$base}admin/index.php");
         exit();
     } elseif ($role === 'teacher' || $role === 'staff') {
-        header("Location: /school_app/staff/index.php");
+        header("Location: {$base}staff/index.php");
         exit();
     } elseif ($role === 'student') {
-        header("Location: /school_app/student/index.php");
+        header("Location: {$base}student/index.php");
         exit();
     }
 }
@@ -21,12 +21,19 @@ $stmt = $conn->prepare('SELECT * FROM school_config LIMIT 1');
 $stmt->execute();
 $result = $stmt->fetch(PDO::FETCH_OBJ);
 
+if (($result->maintenance_mode ?? 0) == 1) {
+    if (!isset($_SESSION['user_id']) || !in_array(strtolower($_SESSION['role'] ?? ''), ['admin', 'super'])) {
+        header("Location: {$base}maintenance.php");
+        exit();
+    }
+}
+
 // Fallbacks
 $school_name    = $result->school_name    ?? 'School Portal';
 $school_tagline = $result->school_tagline ?? 'Excellence in Education';
 $school_logo    = $result->school_logo    ?? '';
-$primary_color  = $result->school_primary ?? '#16a34a';
-$logo_url       = $school_logo ? "/school_app/uploads/school_logo/{$school_logo}" : '';
+$primary_color = $result->pwa_theme_color ?? ($result->school_primary ?? '#16a34a');
+$logo_url = $school_logo ? $base . ltrim($school_logo, '/') : '';
 
 $dev_year = date('Y');
 ?>
@@ -38,11 +45,9 @@ $dev_year = date('Y');
     <title><?= htmlspecialchars($school_name) ?> – Loading</title>
 
     <!-- PWA Meta -->
-    <link rel="manifest" href="/school_app/manifest.php">
+    <link rel="manifest" href="<?= $base ?>manifest.php">
     <meta name="theme-color" content="<?= htmlspecialchars($primary_color) ?>">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <?php if ($logo_url): ?>
     <link rel="icon" type="image" href="<?= htmlspecialchars($logo_url) ?>">
     <?php endif; ?>
@@ -325,74 +330,7 @@ $dev_year = date('Y');
             to   { opacity: 0; transform: scale(1.04); }
         }
 
-        /* ── Install Banner ──────────────────────*/
-        #install-banner {
-            position: absolute;
-            bottom: calc(env(safe-area-inset-bottom, 0px) + 60px);
-            left: 16px; right: 16px;
-            background: rgba(255,255,255,0.12);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(255,255,255,0.25);
-            border-radius: 20px;
-            padding: 14px 16px;
-            display: none;
-            align-items: center;
-            gap: 12px;
-            z-index: 2;
-            opacity: 0;
-            transform: translateY(12px);
-            transition: opacity 0.4s ease, transform 0.4s ease;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-        }
-        #install-banner.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .install-icon {
-            width: 40px; height: 40px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-            font-size: 20px;
-        }
-        .install-text {
-            flex: 1;
-        }
-        .install-text strong {
-            display: block;
-            color: #fff;
-            font-size: 13px;
-            font-weight: 700;
-            line-height: 1.3;
-        }
-        .install-text small {
-            color: rgba(255,255,255,0.65);
-            font-size: 11px;
-        }
-        .install-btn {
-            background: rgba(255,255,255,0.22);
-            color: #fff;
-            border: 1.5px solid rgba(255,255,255,0.35);
-            border-radius: 10px;
-            padding: 7px 14px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: background 0.2s;
-            font-family: 'Outfit', sans-serif;
-        }
-        .install-btn:hover { background: rgba(255,255,255,0.32); }
-        .install-close {
-            position: absolute;
-            top: 8px; right: 10px;
-            background: none; border: none;
-            color: rgba(255,255,255,0.5);
-            font-size: 16px; cursor: pointer;
-            line-height: 1; padding: 2px;
-        }
+
     </style>
 </head>
 <body>
@@ -443,16 +381,7 @@ $dev_year = date('Y');
 
     </div><!-- /.splash-content -->
 
-    <!-- Install Banner (shown only in browser mode, hidden when already installed as PWA) -->
-    <div id="install-banner" role="complementary" aria-label="Install app">
-        <div class="install-icon">📲</div>
-        <div class="install-text">
-            <strong>Install for Full Screen</strong>
-            <small>Add to Home Screen for the best experience</small>
-        </div>
-        <button class="install-btn" id="installBtn">Install</button>
-        <button class="install-close" id="installClose" aria-label="Dismiss">✕</button>
-    </div>
+
 
     <!-- Developer Credit -->
     <p class="dev-credit">
@@ -466,108 +395,14 @@ $dev_year = date('Y');
 <script>
     // ── Service Worker Registration (required for PWA installability) ──────
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/school_app/sw.js')
+        navigator.serviceWorker.register('<?= $base ?>sw.js')
             .then(reg => console.log('SW registered:', reg.scope))
             .catch(err => console.warn('SW registration failed:', err));
     }
 
-    // ── Fullscreen API fallback (for in-browser users) ──────────────────────
-    // When running in a normal browser tab (not installed), tapping anywhere
-    // on the splash requests the Fullscreen API to hide the address bar.
-    (function() {
-        const isInstalled = window.matchMedia('(display-mode: fullscreen)').matches ||
-                            window.matchMedia('(display-mode: standalone)').matches ||
-                            window.navigator.standalone === true;
 
-        if (!isInstalled) {
-            function tryFullscreen() {
-                const doc = document.documentElement;
-                if (doc.requestFullscreen)            doc.requestFullscreen();
-                else if (doc.webkitRequestFullscreen) doc.webkitRequestFullscreen();
-                else if (doc.msRequestFullscreen)     doc.msRequestFullscreen();
-            }
-            // Try on first user interaction (browsers require a gesture)
-            document.addEventListener('touchstart', tryFullscreen, { once: true });
-            document.addEventListener('click',      tryFullscreen, { once: true });
-        }
-    })();
 
-    // ── PWA Install Prompt ──────────────────────────────────────────────────
-    let deferredPrompt = null;
-    const banner      = document.getElementById('install-banner');
-    const installBtn  = document.getElementById('installBtn');
-    const closeBtn    = document.getElementById('installClose');
 
-    // Detect if already running as installed PWA
-    const isInstalled = window.matchMedia('(display-mode: fullscreen)').matches ||
-                        window.matchMedia('(display-mode: standalone)').matches ||
-                        window.navigator.standalone === true;
-
-    // Detection: Allow desktop for testing, but prioritize mobile
-    const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 0);
-    const dismissed = sessionStorage.getItem('install-banner-dismissed');
-
-    console.log('PWA State:', { isInstalled, isMobileDevice, dismissed });
-
-    // For debugging: show if not installed, regardless of mobile check for now
-    if (!isInstalled) {
-        // Show banner after animations settle
-        setTimeout(showBanner, 1500);
-
-        // Catch native prompt
-        window.addEventListener('beforeinstallprompt', function (e) {
-            console.log('PWA: beforeinstallprompt fired');
-            e.preventDefault();
-            deferredPrompt = e;
-            if (installBtn) installBtn.textContent = 'Install Now';
-        });
-
-        const isIOS      = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-        const isInSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-
-        if (installBtn) {
-            installBtn.addEventListener('click', async function () {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    console.log('PWA: Install outcome:', outcome);
-                    if (outcome === 'accepted') {
-                        hideBanner();
-                    }
-                    deferredPrompt = null;
-                } else if (isIOS && isInSafari) {
-                    alert('Tap the Share button (□↑) at the bottom of Safari, then choose "Add to Home Screen".');
-                } else {
-                    alert('To use this app professionally:\n1. Open your browser menu (⋮ or share).\n2. Tap "Install app" or "Add to Home Screen".');
-                }
-            });
-        }
-
-        if (isIOS && isInSafari && installBtn) {
-            installBtn.textContent = 'How?';
-        }
-    }
-
-    function showBanner() {
-        if (!banner) return;
-        // Comment out the dismissed check for now to ensure user sees it
-        // if (dismissed) return;
-        banner.style.display = 'flex';
-        requestAnimationFrame(() => requestAnimationFrame(() => banner.classList.add('visible')));
-    }
-
-    function hideBanner() {
-        if (!banner) return;
-        banner.classList.remove('visible');
-        setTimeout(() => banner.style.display = 'none', 400);
-    }
-
-    if (closeBtn) {
-        closeBtn.addEventListener('click', function () {
-            sessionStorage.setItem('install-banner-dismissed', '1');
-            hideBanner();
-        });
-    }
 
     const SPLASH_MS = 2800; 
     let redirectTimer = setTimeout(performRedirect, SPLASH_MS);
@@ -577,32 +412,27 @@ $dev_year = date('Y');
         if (splash) splash.classList.add('splash-exit');
 
         // Check if the user has an active session before deciding where to go
-        fetch('/school_app/auth/check_login.php')
+        fetch('<?= $base ?>auth/check_login.php')
             .then(r => r.json())
             .then(data => {
-                let dest = '/school_app/auth/login.php'; // default fallback
+                let dest = '<?= $base ?>auth/login.php'; // default fallback
                 if (data.loggedIn) {
                     const role = (data.role || '').toLowerCase();
-                    if      (role === 'admin')   dest = '/school_app/admin/index.php';
-                    else if (role === 'staff')   dest = '/school_app/staff/index.php';
-                    else if (role === 'student') dest = '/school_app/student/index.php';
+                    if      (role === 'admin' || role === 'super')   dest = '<?= $base ?>admin/index.php';
+                    else if (role === 'staff') dest = '<?= $base ?>staff/index.php';
+                    else if (role === 'student') dest = '<?= $base ?>student/index.php';
                 }
                 setTimeout(() => window.location.replace(dest), 480);
             })
             .catch(() => {
                 // Network error fallback — just go to login
-                setTimeout(() => window.location.replace('/school_app/auth/login.php'), 480);
+                setTimeout(() => window.location.replace('<?= $base ?>auth/login.php'), 480);
             });
     }
 
-    if (installBtn) {
-        installBtn.addEventListener('click', () => {
-            clearTimeout(redirectTimer);
-            redirectTimer = setTimeout(performRedirect, 10000); 
-            console.log('Redirect delayed due to interaction');
-        });
-    }
+
 </script>
 
 </body>
 </html>
+

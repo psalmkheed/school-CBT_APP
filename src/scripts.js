@@ -1,34 +1,117 @@
-// ── Global Toast Notification ──────────────────────────────────────────
+// ── Global Configuration ──────────────────────────────────────────────
+const BASE_URL = window.APP_URL || '/';
+
+// ── Security: Disable Right-Click & DevTools Shortcuts ────────────────
+(function () {
+      // Block right-click context menu
+      document.addEventListener('contextmenu', function (e) {
+            e.preventDefault();
+            showSecurityWarning();
+      });
+
+      // Block devtools keyboard shortcuts
+      document.addEventListener('keydown', function (e) {
+            // F12
+            if (e.key === 'F12') {
+                  e.preventDefault();
+                  showSecurityWarning();
+                  return;
+            }
+            // Ctrl+Shift+I (Chrome DevTools)
+            // Ctrl+Shift+J (Chrome Console)
+            // Ctrl+Shift+C (Inspect Element)
+            if (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key.toUpperCase())) {
+                  e.preventDefault();
+                  showSecurityWarning();
+                  return;
+            }
+            // Ctrl+U (View Source)
+            if (e.ctrlKey && e.key.toUpperCase() === 'U') {
+                  e.preventDefault();
+                  showSecurityWarning();
+                  return;
+            }
+      });
+
+      function showSecurityWarning() {
+            // Avoid stacking multiple toasts
+            if (document.getElementById('sec-toast')) return;
+            const toast = document.createElement('div');
+            toast.id = 'sec-toast';
+            toast.style.cssText = `
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: #1e1e2e; color: #fff; padding: 14px 24px;
+            border-radius: 16px; font-size: 13px; font-weight: 600;
+            display: flex; align-items: center; gap: 10px; z-index: 9999999;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08);
+            animation: secToastIn 0.3s ease;
+        `;
+            toast.innerHTML = `<span style="font-size:18px">🔒</span> This action is restricted for security reasons.`;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                  toast.style.opacity = '0';
+                  toast.style.transition = 'opacity 0.3s ease';
+                  setTimeout(() => toast.remove(), 300);
+            }, 3000);
+      }
+
+      // Inject keyframe animation once
+      const style = document.createElement('style');
+      style.textContent = `@keyframes secToastIn { from { opacity:0; transform:translateX(-50%) translateY(12px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }`;
+      document.head.appendChild(style);
+})();
+
 window.showToast = function(message, type = 'success') {
       let toast = document.getElementById('global-toast');
       
       if (!toast) {
             toast = document.createElement('div');
             toast.id = 'global-toast';
-            toast.className = 'hidden fixed top-4 md:top-2 right-2 md:right-5 z-[999999] min-w-[200px] md:min-w-[300px] max-w-[calc(100%-2rem)] md:max-w-md px-5 py-3 rounded-2xl shadow-2xl text-sm font-semibold flex items-center gap-3 fade-in-left';
-            toast.innerHTML = '<span id="global-toast-icon" class="text-xl"></span><span id="global-toast-msg"></span>';
+            toast.className = 'hidden fixed top-6 right-6 z-[999999] min-w-[320px] max-w-md p-4 rounded-2xl shadow-2xl flex items-center gap-4 transition-all duration-300 transform translate-x-12 opacity-0 glass';
+            toast.innerHTML = `
+                  <div id="toast-icon-wrapper" class="size-10 rounded-xl flex items-center justify-center shrink-0 shadow-inner">
+                        <i id="global-toast-icon" class="text-xl"></i>
+                  </div>
+                  <div class="flex-1">
+                        <p id="global-toast-msg" class="text-sm font-bold text-gray-800 leading-tight"></p>
+                  </div>
+            `;
             document.body.appendChild(toast);
       }
 
       const icon = document.getElementById('global-toast-icon');
       const msg = document.getElementById('global-toast-msg');
+      const wrapper = document.getElementById('toast-icon-wrapper');
 
       msg.textContent = message;
-      icon.textContent = type === 'success' ? '✅' : '❌';
       
-      // Reset classes and show
-      toast.classList.remove('hidden', 'bg-green-50/90', 'border', 'border-green-400', 'text-green-600', 'bg-red-50/90', 'border-red-400', 'text-red-600', 'backdrop-blur-sm');
+      // Theme colors
+      toast.classList.remove('border-green-100', 'border-red-100', 'border-blue-100');
+      wrapper.classList.remove('bg-green-500', 'bg-red-500', 'bg-blue-500', 'text-white');
 
-      const styles = type === 'success'
-            ? ['bg-green-50/90', 'border', 'border-green-400', 'text-green-600', 'backdrop-blur-sm']
-            : ['bg-red-50/90', 'border', 'border-red-400', 'text-red-600', 'backdrop-blur-sm'];
-
-      toast.classList.add(...styles);
+      if (type === 'success') {
+            toast.classList.add('border-green-100');
+            wrapper.classList.add('bg-green-500', 'text-white');
+            icon.className = 'bx bx-check-circle';
+      } else if (type === 'error') {
+            toast.classList.add('border-red-100');
+            wrapper.classList.add('bg-red-500', 'text-white');
+            icon.className = 'bx bx-x-circle';
+      } else {
+            toast.classList.add('border-blue-100');
+            wrapper.classList.add('bg-blue-500', 'text-white');
+            icon.className = 'bx bx-info-circle';
+      }
+      
+      // Show animation
+      toast.classList.remove('hidden', 'translate-x-12', 'opacity-0');
+      toast.classList.add('translate-x-0', 'opacity-100');
 
       // Auto hide
       clearTimeout(toast._timer);
       toast._timer = setTimeout(() => {
-            toast.classList.add('hidden');
+            toast.classList.add('translate-x-12', 'opacity-0');
+            setTimeout(() => toast.classList.add('hidden'), 300);
       }, 4000);
 };
 
@@ -38,10 +121,61 @@ window.showAlert = function(type, message) {
 };
 
 $(function () {
-      // Base URL for the application
-      const BASE_URL = '/school_app/';
+      // ── Theme Management (Safe Storage Access) ───────────────────────────
+      const $body = $('body');
+      const $themeIcon = $('#themeIcon');
+      
+      let savedTheme = 'light';
+      try {
+            savedTheme = localStorage.getItem('theme') || 'light';
+      } catch (e) {
+            console.warn('Storage access blocked by browser privacy settings.');
+      }
 
-      // swiper
+      if (savedTheme === 'dark') {
+            $body.addClass('dark');
+            $themeIcon.removeClass('bx-moon').addClass('bx-sun');
+      }
+
+      $('#themeToggler').on('click', function() {
+            $body.toggleClass('dark');
+            const isDark = $body.hasClass('dark');
+            
+            try {
+                  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            } catch (e) {}
+            
+            // Swap icon
+            if (isDark) {
+                  $themeIcon.removeClass('bx-moon').addClass('bx-sun');
+                  window.showToast('Dark mode activated 🌙', 'info');
+            } else {
+                  $themeIcon.removeClass('bx-sun').addClass('bx-moon');
+                  window.showToast('Light mode activated ☀️', 'info');
+            }
+
+            if (typeof window.initGrowthChart === 'function') window.initGrowthChart();
+      });
+
+      // ── Inactivity Auto Logout (5 Minutes) ──────────────────────────────────
+      const AUTO_LOGOUT_TIME_MS = 5 * 60 * 1000;
+      let inactivityTimer;
+
+      const isAuthenticatedPage = $body[0].className.match(/\buser-/);
+
+      if (isAuthenticatedPage) {
+            const resetTimer = () => {
+                  clearTimeout(inactivityTimer);
+                  inactivityTimer = setTimeout(() => {
+                        window.location.href = `${BASE_URL}auth/logout.php?reason=timeout`;
+                  }, AUTO_LOGOUT_TIME_MS);
+            };
+
+            $(document).on('mousemove keydown scroll click touchstart', resetTimer);
+            resetTimer();
+      }
+
+      // Swiper and UI logic remains inside
       function initSwiper() {
             if ($(".swiper").length) {
                   new Swiper('.swiper', {
@@ -88,8 +222,12 @@ $(function () {
             </div>
       `;
 
-
       window.loadPage = (url) => {
+            // Support for jQuery-style fragment selectors (e.g. "index.php #mainContent > *")
+            const parts = url.split(" ");
+            const fetchUrl = parts[0];
+            const selector = parts.slice(1).join(" ");
+
             // Clean up chat polling if leaving the chat page
             if (typeof window._stopChatPoll === 'function') {
                   window._stopChatPoll();
@@ -98,26 +236,83 @@ $(function () {
 
             const $mc = $("#mainContent");
 
-            // Fade out current content
-            $mc.fadeTo(120, 0, function() {
-                  // Show skeleton only if request takes > 300ms (slow connection)
-                  const slowTimer = setTimeout(() => {
-                        $mc.html(getSkeletonHTML());
-                  }, 300);
+            // 1. Fade out current content
+            $mc.stop(true).animate({ opacity: 0, transform: 'translateY(10px)' }, 150, function() {
+                  // 2. Clear and show skeleton immediately to avoid white flash
+                  $mc.html(getSkeletonHTML()).css('opacity', 1);
+                  
+                  // 3. Load new content
+                  $.ajax({
+                        url: fetchUrl,
+                        method: 'GET',
+                        success: function(data) {
+                              // Small delay to ensure skeleton is seen
+                              setTimeout(() => {
+                                    $mc.stop(true).animate({ opacity: 0 }, 100, function() {
+                                          // Clear previous content
+                                          $mc.empty();
+                                          
+                                          // Handle fragments
+                                          if (selector) {
+                                                const $temp = $("<div>").append($.parseHTML(data, document, true));
+                                                const $fragment = $temp.find(selector);
+                                                if ($fragment.length > 0) {
+                                                      $mc.append($fragment);
+                                                } else {
+                                                      $mc.html(data);
+                                                }
+                                          } else {
+                                                $mc.html(data);
+                                          }
 
-                  $mc.load(url, function() {
-                        clearTimeout(slowTimer);
-                        // Fade cleanly back in — no hide() snap
-                        $mc.fadeTo(180, 1);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                        if (typeof window.initBlogEditor === 'function') {
-                              window.initBlogEditor();
+                                          $mc.stop(true).animate({ opacity: 1, transform: 'translateY(0)' }, 250);
+                                          window.scrollTo({ top: 0, behavior: 'smooth' });
+                                          
+                                          // Initialize components
+                                          if (typeof window.initBlogEditor === 'function') window.initBlogEditor();
+                                          if (typeof initSwiper === 'function') initSwiper();
+                                          if (typeof initTooltips === 'function') initTooltips();
+                                          if (typeof window.initGrowthChart === 'function') window.initGrowthChart();
+                                          
+                                          // Animate numbers
+                                          $('.tabular-nums').each(function() {
+                                                const $el = $(this);
+                                                const finalValue = parseInt($el.text());
+                                                if (!isNaN(finalValue)) {
+                                                      animateValue($el, 0, finalValue, 1500);
+                                                }
+                                          });
+                                    });
+                              }, 200);
+                        },
+                        error: function(xhr, status, error) {
+                              $mc.stop(true).animate({ opacity: 1 }, 200);
+                              const errMsg = xhr.status === 404 ? 'Page not found (404)' : 'Failed to load content.';
+                              if (window.showToast) window.showToast(errMsg, 'error');
+                              $mc.html(`
+                                    <div class="p-12 text-center glass rounded-[3rem] border-2 border-dashed border-red-100 mt-8">
+                                          <div class="size-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                                                <i class="bx bx-signal-slash text-4xl text-red-500"></i>
+                                          </div>
+                                          <h4 class="text-xl font-semibold text-gray-800 mb-2">Navigation Error</h4>
+                                          <p class="text-gray-400 text-sm mb-8">${errMsg}</p>
+                                          <button onclick="location.reload()" class="px-8 py-3 bg-gray-100 text-gray-600 font-bold rounded-2xl hover:bg-gray-200 transition-all">Reload Portal</button>
+                                    </div>
+                              `);
                         }
                   });
             });
+
+            // 4. Update sidebar active state
+            const filename = parts[0].split('/').pop().split('?')[0];
+            $('.li').removeClass('active-link bg-sky-50 bg-blue-50 text-sky-600 text-blue-600 border-r-4 border-sky-600 border-blue-600');
+            $(`.li[data-page*="${filename}"]`).addClass('active-link bg-blue-50 text-blue-600 border-r-4 border-blue-600');
       };
 
       window.loadPageWithCallback = (url, callback) => {
+            const parts = url.split(" ");
+            const fetchUrl = parts[0];
+            const selector = parts.slice(1).join(" ");
             const $mc = $("#mainContent");
 
             $mc.fadeTo(120, 0, function() {
@@ -125,29 +320,169 @@ $(function () {
                         $mc.html(getSkeletonHTML());
                   }, 300);
 
-                  $mc.load(url, function() {
-                        clearTimeout(slowTimer);
-                        $mc.fadeTo(180, 1, function() {
-                              if (callback) callback();
-                        });
+                  $.ajax({
+                        url: fetchUrl,
+                        method: 'GET',
+                        success: function(data) {
+                              clearTimeout(slowTimer);
+                              $mc.fadeTo(180, 1, function() {
+                                    $mc.empty();
+                                    if (selector) {
+                                          const $temp = $("<div>").append($.parseHTML(data, document, true));
+                                          const $fragment = $temp.find(selector);
+                                          if ($fragment.length > 0) {
+                                                $mc.append($fragment);
+                                          } else {
+                                                $mc.html(data);
+                                          }
+                                    } else {
+                                          $mc.html(data);
+                                    }
+
+                                    if (callback) callback();
+                                    if (typeof window.initGrowthChart === 'function') window.initGrowthChart();
+                              });
+                        },
+                        error: function(xhr, status, error) {
+                              clearTimeout(slowTimer);
+                              $mc.fadeTo(180, 1);
+                              if (window.showToast) window.showToast('Failed to load page', 'error');
+                        }
                   });
             });
       };
 
       window.goHome = function() {
-            if (originalContent) {
-                  $("#mainContent").fadeOut(200, function () {
-                        $(this).html(originalContent).fadeIn(300, function () {
-                              if (typeof window.initGrowthChart === "function") {
-                                    window.initGrowthChart();
+            window.loadPage("index.php #mainContent > *");
+      };
+
+      // ── Advanced Data Visualization ─────────────────────────────────────
+      // ── Utilities ───────────────────────────────────────────────────────
+      function animateValue($el, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                  if (!startTimestamp) startTimestamp = timestamp;
+                  const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                  const easeOutQuad = progress * (2 - progress);
+                  const current = Math.floor(easeOutQuad * (end - start) + start);
+                  
+                  // Preserve suffix like %
+                  const suffix = $el.text().includes('%') ? '%' : '';
+                  $el.text(current + suffix);
+                  
+                  if (progress < 1) {
+                        window.requestAnimationFrame(step);
+                  }
+            };
+            window.requestAnimationFrame(step);
+      }
+
+      window.initGrowthChart = function() {
+            const canvas = document.getElementById('growthChart');
+            const masteryCanvas = document.getElementById('masteryChart');
+            
+            if (!canvas && !masteryCanvas) return;
+
+            // Destroy existing instances if they exist
+            if (window.currentGrowthChart) { window.currentGrowthChart.destroy(); window.currentGrowthChart = null; }
+            if (window.currentMasteryChart) { window.currentMasteryChart.destroy(); window.currentMasteryChart = null; }
+
+            // Ensure BASE_URL is usable
+            const path = (typeof BASE_URL !== 'undefined') ? BASE_URL : '/school_app/';
+            const endpoint = path + 'student/auth/chart_data.php?action=get_performance';
+
+            $.getJSON(endpoint, function(res) {
+                  if (res.status !== 'success') {
+                        console.warn("Analytics Error:", res.message);
+                        return;
+                  }
+
+                  // 1. Trend Chart
+                  if (canvas && res.trend && res.trend.length > 0) {
+                        const labels = res.trend.map(t => new Date(t.taken_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+                        const values = res.trend.map(t => parseFloat(t.percentage));
+
+                        window.currentGrowthChart = new Chart(canvas, {
+                              type: 'line',
+                              data: {
+                                    labels: labels,
+                                    datasets: [{
+                                          label: 'Score %',
+                                          data: values,
+                                          borderColor: '#3b82f6',
+                                          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                          borderWidth: 4,
+                                          tension: 0.4,
+                                          fill: true,
+                                          pointBackgroundColor: '#fff',
+                                          pointBorderColor: '#3b82f6',
+                                          pointBorderWidth: 3,
+                                          pointRadius: 6
+                                    }]
+                              },
+                              options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: { legend: { display: false } },
+                                    scales: {
+                                          y: { beginAtZero: true, max: 100, grid: { color: 'rgba(0,0,0,0.03)' }, ticks: { font: { weight: 'bold', size: 10 } } },
+                                          x: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 10 } } }
+                                    }
                               }
                         });
+                  }
+
+                  // 2. Mastery Chart
+                  if (masteryCanvas && res.mastery && res.mastery.length > 0) {
+                        const mLabels = res.mastery.map(m => m.subject);
+                        const mValues = res.mastery.map(m => parseFloat(m.avg_score));
+
+                        window.currentMasteryChart = new Chart(masteryCanvas, {
+                              type: 'bar',
+                              data: {
+                                    labels: mLabels,
+                                    datasets: [{
+                                          label: 'Avg Score',
+                                          data: mValues,
+                                          backgroundColor: '#6366f1',
+                                          borderRadius: 12,
+                                          barThickness: 20
+                                    }]
+                              },
+                              options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    indexAxis: 'y',
+                                    plugins: { legend: { display: false } },
+                                    scales: {
+                                          x: { beginAtZero: true, max: 100, grid: { color: 'rgba(0,0,0,0.03)' }, ticks: { font: { weight: 'bold', size: 10 } } },
+                                          y: { grid: { display: false }, ticks: { font: { weight: 'bold', size: 10 } } }
+                                    }
+                              }
+                        });
+                  }
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                  console.error("Chart Data Fetch Failed:", textStatus, errorThrown);
+                  console.log("Details:", jqXHR.responseText);
+            });
+      };
+      
+      // Auto-trigger on load
+      $(function() {
+            setTimeout(window.initGrowthChart, 500);
+      });
+
+      window.goHome = function() {
+            if (typeof originalContent !== 'undefined' && originalContent) {
+                  $("#mainContent").fadeOut(200, function () {
+                        $(this).html(originalContent).fadeIn(300, function () {
+                              if (typeof window.initGrowthChart === "function") window.initGrowthChart();
+                        });
+                        $(".li").removeClass("active");
+                        $("#sideHome").addClass("active");
                   });
-                  // Also reset active class in sidebar if possible
-                  $(".li").removeClass("active");
-                  $("#homepage, #sideHome").addClass("active");
             } else {
-                  window.location.reload();
+                  window.loadPage("index.php #mainContent > *");
             }
       };
 
@@ -212,17 +547,23 @@ $(function () {
       function isMobile() { return window.innerWidth < 768; }
 
       // Hamburger toggle
-      $("#sideBarToggler").on("click", e => {
+      $("#sideBar").on("click", "#sideBarTogglerContainer", function (e) {
             e.stopPropagation();
+            const $sidebar = $("#sideBar");
+            const $icon = $("#sideBarToggler");
+
             if (isMobile()) {
-                  if ($("#sideBar").hasClass("sidebar-open")) {
+                  if ($sidebar.hasClass("sidebar-open")) {
                         closeSidebar();
+                        $icon.removeClass("rotating");
                   } else {
                         openSidebar();
+                        $icon.addClass("rotating");
                   }
             } else {
                   // Desktop: toggle collapsed state
-                  $("#sideBar").toggleClass("sidebar-collapsed");
+                  $sidebar.toggleClass("sidebar-collapsed");
+                  $icon.toggleClass("rotating");
             }
       });
 
@@ -230,6 +571,16 @@ $(function () {
       $("#sideBar").on("click", "#sidebarCloseBtn", (e) => {
             e.stopPropagation();
             closeSidebar();
+      });
+
+      // Hamburger at the Top Nav (Mobile & Tablet)
+      $(document).on("click", "#mobileHamburgerBtn", (e) => {
+            e.stopPropagation();
+            if (isMobile()) {
+                  openSidebar();
+            } else {
+                  $("#sideBar").toggleClass("sidebar-collapsed");
+            }
       });
 
       // Overlay click closes sidebar
@@ -262,14 +613,36 @@ $(function () {
 
       // Student Sidebar Dynamic page loading
       $("#sideHome").on("click", e => { e.preventDefault(); loadPage("index.php #mainContent > *"); });
+      $("#sideEvents").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "pages/events.php"); });
       $("#sideChat").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "pages/chat.php"); });
       $("#sideTest").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "pages/exam.php"); });
       $("#sideExamHistory").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "student/pages/exam_history.php"); });
+      $("#sideLibrary").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "student/pages/library.php"); });
+      $("#sideStudy").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "student/pages/study.php"); });
+      $("#sideGamification").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "student/pages/gamification.php"); });
+      $("#sideMyQr").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "student/pages/my_qr.php"); });
+      $("#sideTimetableStudent").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "student/pages/timetable.php"); });
       $("#sideWaecPractice").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "student/pages/waec_practice.php"); });
-      $("#sideStudy").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "pages/study.php"); });
       $("#sideStudents").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "staff/pages/students.php"); });
+      $("#sidePromote").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "staff/pages/promote_students.php"); });
       $("#sideStaffExams").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "staff/pages/exams.php"); });
+      $("#sideAttendance").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "staff/pages/attendance.php"); });
+      $("#sideCA").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "staff/pages/ca_records.php"); });
+      $("#sideStaffLibrary").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "staff/pages/library.php"); });
+      
+      // Staff Study Hub Routes
+      $("#staffStudyUpload").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "staff/pages/study_materials.php?tab=All"); });
+      $("#staffStudyAssignment").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "staff/pages/study_materials.php?tab=Assignment"); });
+      $("#staffStudySyllabus").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "staff/pages/study_materials.php?tab=Syllabus"); });
+      $("#staffStudyOther").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "staff/pages/study_materials.php?tab=Other_Download"); });
+
+      $("#sideAiGen").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "staff/pages/ai_generator.php"); });
       $("#sideResults").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "staff/pages/results.php"); });
+      $("#sideLessonPlans").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "staff/pages/lesson_plans.php"); });
+      $("#sideTimetableStaff").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "staff/pages/timetable.php"); });
+      $("#sideAssignmentsStudent").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "student/pages/assignments.php"); });
+      $("#sideAssignments").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "staff/pages/assignments.php"); });
+      $("#sideStaffPasses").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "staff/pages/hall_passes.php"); });
 
       // Admin sidebar dynamic page loading
       $("#homepage").on("click", e => { e.preventDefault(); loadPage("index.php #mainContent > *"); });
@@ -278,7 +651,45 @@ $(function () {
 
       $("#usersRecord").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/users.php"); });
       
+      // Finance routing
+      $("#manageFees").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/finance_fees.php"); });
+      $("#expenseTracker").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/finance_expenses.php"); });
+      $("#financialReports").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/finance_reports.php"); });
+
+      $("#importData").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/import_data.php"); });
+      $("#reportCards").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/report_cards.php"); });
+      $("#proctoring").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/proctoring.php"); });
+      $("#attTrends").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/attendance_analytics.php"); });
+      $("#manageLessonPlans").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/manage_lesson_plans.php"); });
+      $("#adminLibrary").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/digital_library.php"); });
+
+      // Study Material Routing
+      $("#studyUpload").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/study_materials.php?tab=All"); });
+      $("#studyAssignment").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/study_materials.php?tab=Assignment"); });
+      $("#studySyllabus").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/study_materials.php?tab=Syllabus"); });
+      $("#studyOther").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/study_materials.php?tab=Other_Download"); });
+
+      // Operations routing
+      $("#manageTimetable").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/timetable.php"); });
+      $("#idCards").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/id_cards.php"); });
+      $("#docTemplates").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/templates.php"); });
+      $("#qrScanner").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/qr_scanner.php"); });
+      $("#hostelManager").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/hostels.php"); });
+      $("#passManager").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/hall_passes.php"); });
+      $("#behaviorLog").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/behavior.php"); });
+      $("#transport").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/transport.php"); });
+      $("#inventory").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/inventory.php"); });
+      $("#physicalLibrary").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/physical_library.php"); });
+
+      // HR routing
+      $("#hrStaffDirectory").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/hr_staff_directory.php"); });
+      $("#hrAttendance").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/hr_attendance.php"); });
+      $("#hrAttendanceReport").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/hr_attendance_report.php"); });
+      $("#hrPayroll").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/hr_payroll.php"); });
+      $("#hrPayrollReport").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/hr_payroll_report.php"); });
+
       $("#classes").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/classes.php"); });
+      $("#promoteStudents").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/promote_students.php"); });
 
       $("#staffRecord").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/staff.php"); });
 
@@ -294,6 +705,10 @@ $(function () {
       });
 
       $("#viewLogs").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/logs.php"); });
+      $("#schoolSettings").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/school_settings.php"); });
+      $("#announcements").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/announcements.php"); });
+      $("#events").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/events.php"); });
+      $("#adminLibrary").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/library.php"); });
 
       $("#createExam").on("click", e => { e.preventDefault(); loadPage(BASE_URL + "admin/pages/create-exam.php"); });
 
@@ -331,7 +746,7 @@ $(function () {
             closeAccountMenu();
 
             $('#notification_screen')
-                  .removeClass('opacity-0 translate-x-[-50%] pointer-events-none')
+                  .removeClass('hidden opacity-0 translate-x-[-50%] pointer-events-none')
                   .addClass('opacity-100 translate-x-0');
 
             // Bind mark-as-read handlers when panel opens
@@ -341,7 +756,10 @@ $(function () {
       function closeNotifications() {
             $('#notification_screen')
                   .addClass('opacity-0 translate-x-[-50%] pointer-events-none')
-                  .removeClass('opacity-100 translate-x-0');
+                  .removeClass('opacity-100 translate-x-0')
+                  .one('transitionend', function () {
+                        if (!$(this).hasClass('opacity-100')) $(this).addClass('hidden');
+                  });
       }
 
       $('#notification_closeBtn').on('click', function (e) {
@@ -356,71 +774,75 @@ $(function () {
       $(document).on('click', function () {
             $('#notification_screen')
                   .addClass('opacity-0 translate-x-[-50%] pointer-events-none')
-                  .removeClass('opacity-100 translate-x-0');
+                  .removeClass('opacity-100 translate-x-0')
+                  .one('transitionend', function () {
+                        if (!$(this).hasClass('opacity-100')) $(this).addClass('hidden');
+                  });
       });
       //---------Notification toggler ends here------------//
       //---------------------------------------------------//
 
       // Mark as read script
-      function bindMarkAsReadHandlers() {
+      function bindMarkAsReadHandlers() { // updated handler
             const ping = $('#unread_ping');
             const counter = $('#unread_count');
 
-            $('.mark-read-btn').each(function () {
-                  const btn = $(this);
+            // Use event delegation for better reliability with dynamic content
+            $('#notification_area').off('click.markread', '.mark-read-btn').on('click.markread', '.mark-read-btn', function (e) {
+                  e.stopPropagation();
 
-                  btn.off('click.markread').on('click.markread', function (e) {
-                        e.stopPropagation();
+                  const $btn = $(this);
+                  const id = $btn.data('id');
+                  const $container = $btn.closest('.notification');
 
-                        const btn = $(this);
-                        const id = btn.data('id');
+                  if (!id) return;
 
-                        if (!id) {
-                              alert('Notification ID missing');
-                              return;
-                        }
+                  // Visual feedback: loading state
+                  const originalHtml = $btn.html();
+                  $btn.html('<i class="bx bx-loader-alt bx-spin"></i>').prop('disabled', true);
 
                         $.ajax({
-                              url: '/school_app/admin/auth/mark_read.php',
+                              url: BASE_URL + 'admin/auth/mark_read.php',
                               type: 'POST',
-                              data: { id },
+                              data: { id: id },
                               dataType: 'json',
                               success: function (data) {
                                     if (data.status === 'success') {
 
-                                          btn.html(`
-                            <span class="flex items-center gap-1 text-gray-500 text-sm"><i class="bx-check-circle text-lg"></i> <p class="m-0 p-0">Read</p></span>
-                        `)
-                                                .prop('disabled', true)
-                                                .removeClass('bg-green-500 hover:bg-green-600')
-                                                .addClass('cursor-default');
+                                          // Match style from notification.php
+                                          $btn.replaceWith(`
+                                          <span class="flex items-center gap-1 text-gray-400 text-[10px] font-semibold uppercase tracking-widest animate-fadeIn">
+                                                <i class="bx bx-check-circle text-sm text-green-500"></i> Viewed
+                                          </span>
+                                    `);
 
-                                          btn.closest('.notification').css('opacity', '0.6');
+                                          if ($container.length) {
+                                                $container.css('opacity', '0.6').addClass('grayscale-[0.5]');
+                                          }
 
                                           if (counter.length) {
                                                 let count = parseInt(counter.text(), 10) || 0;
                                                 count = Math.max(0, count - 1);
                                                 counter.text(count);
 
-                                                if (count === 0) {
-                                                      ping.hide();
-                                                      counter.hide();
-                                                } else {
-                                                      ping.show();
-                                                      counter.show();
-                                                }
+                                          if (count === 0) {
+                                                ping.fadeOut();
+                                                counter.fadeOut();
                                           }
+                                    }
+
+                                          if (window.triggerHaptic) window.triggerHaptic(20);
 
                                     } else {
-                                          alert(data.message || 'Failed to mark as read');
+                                          $btn.html(originalHtml).prop('disabled', false);
+                                          if (window.showToast) window.showToast(data.message || 'Failed to mark as read', 'error');
                                     }
                               },
                               error: function (xhr, status, error) {
-                                    console.error('AJAX error:', error);
-                                    console.error('Response:', xhr.responseText);
-                                    alert('Network error: ' + error);
-                              }
-                        });
+                              $btn.html(originalHtml).prop('disabled', false);
+                              console.error('AJAX error:', error);
+                              if (window.showToast) window.showToast('Network error: ' + error, 'error');
+                        }
                   });
             });
       }
@@ -458,10 +880,10 @@ $(function () {
             const isFs = !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
             
             if (isFs) {
-                  fsBtn.html('<i class="bx bx-exit-fullscreen text-lg"></i> <span>Exit Fullscreen</span>');
+                  fsBtn.html('<i class="bx bx-fullscreen-exit text-xl"></i>');
                   fsBtn.removeClass('bg-gray-100 text-gray-700').addClass('bg-red-50 text-red-600 border border-red-100');
             } else {
-                  fsBtn.html('<i class="bx bx-fullscreen text-lg"></i> <span>Go Fullscreen</span>');
+                  fsBtn.html('<i class="bx bx-fullscreen text-xl"></i>');
                   fsBtn.removeClass('bg-red-50 text-red-600 border-red-100').addClass('bg-gray-100 text-gray-700');
             }
             
@@ -530,7 +952,7 @@ $(function () {
             $('body').prepend(`
                   <div id="ptr-container">
                         <div id="ptr-loader">
-                              <i class="bx bx-loader-alt"></i>
+                              <i class="bx bxs-loader-dots"></i>
                         </div>
                   </div>
             `);
@@ -597,7 +1019,7 @@ $(function () {
 
                               ptrLoader.removeClass('ptr-spinning ptr-success').css('transform', 'scale(0)');
                               ptrContainer.css('height', '0');
-                              ptrIcon.attr('class', 'bx bx-loader-alt').css('transform', 'rotate(0deg)');
+                              ptrIcon.attr('class', 'bx bxs-loader-dots').css('transform', 'rotate(0deg)');
                         }, 500);
                   }, 800);
             } else {
@@ -660,7 +1082,7 @@ $(function () {
                   const panelId = c.filterBtnId + '_panel';
                   const panelHtml = `
                   <div id="${panelId}" class="hidden absolute right-0 top-full mt-2 z-50 bg-white rounded-2xl shadow-2xl shadow-gray-200/60 border border-gray-100 p-4 min-w-[240px] animate-fadeIn">
-                        <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-3">Filter By</p>
+                        <p class="text-[9px] font-semibold text-gray-400 uppercase tracking-widest mb-3">Filter By</p>
                         <div class="space-y-3" id="${panelId}_selects"></div>
                         <div class="flex gap-2 mt-4 pt-3 border-t border-gray-100">
                               <button type="button" id="${panelId}_clear" class="flex-1 px-3 py-2 text-xs font-bold text-gray-500 bg-gray-50 rounded-xl hover:bg-gray-100 transition cursor-pointer">Clear All</button>
@@ -706,7 +1128,7 @@ $(function () {
                         const count = Object.keys(activeFilters).length;
                         $filterBtn.find('.filter-count').remove();
                         if (count > 0) {
-                              $filterBtn.append(`<span class="filter-count absolute -top-1.5 -right-1.5 size-5 bg-blue-600 text-white text-[9px] font-black rounded-full flex items-center justify-center">${count}</span>`);
+                              $filterBtn.append(`<span class="filter-count absolute -top-1.5 -right-1.5 size-5 bg-blue-600 text-white text-[9px] font-semibold rounded-full flex items-center justify-center">${count}</span>`);
                         }
                   });
 
@@ -880,7 +1302,7 @@ $(function () {
       // ── PWA Service Worker Registration ──────────────────────────────────
       if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                  navigator.serviceWorker.register('/school_app/sw.js')
+                  navigator.serviceWorker.register(BASE_URL + 'sw.js')
                         .then(reg => console.log('Service Worker registered:', reg.scope))
                         .catch(err => console.log('Service Worker registration failed:', err));
             });

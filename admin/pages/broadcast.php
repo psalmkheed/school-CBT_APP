@@ -19,7 +19,7 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
                               <i class="bx bx-broadcast text-blue-600 text-2xl"></i>
                         </div>
                         <div>
-                              <h3 class="text-xl md:text-2xl font-black text-gray-800 tracking-tight">Broadcast System
+                              <h3 class="text-xl md:text-2xl font-semibold text-gray-800 tracking-tight">Broadcast System
                               </h3>
                               <p class="text-sm text-gray-400 font-medium">Send notifications and manage sent messages
                               </p>
@@ -56,7 +56,7 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
                   <h3 class="text-lg font-bold text-gray-800">Compose New Broadcast</h3>
             </div>
 
-            <form id="broadcastMessage">
+            <form id="broadcastMessage" method="POST">
                   <div class="bg-white rounded-2xl shadow-md border border-gray-100 p-6 flex flex-col gap-6">
 
                         <div class="flex flex-col gap-2">
@@ -65,19 +65,22 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
                               <select id="recipient"
                                     class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 focus:border-transparent transition bg-white cursor-pointer">
                                     <option value="" disabled selected>Select Recipient</option>
-                                    <option value="all">All Students & Staff</option>
+                                    <option value="all">All Users (Students, Staff & Parents)</option>
                                     <option value="students">All Students</option>
                                     <option value="staff">All Staff</option>
+                                    <option value="parents">All Parents</option>
+                                    <optgroup label="Specific Users">
                                     <?php foreach ($result as $res):
                                           if ($res->user_id !== 'admin001' && $res->first_name !== 'Super Admin') {
 
                                                 $userID = $res->user_id;
                                                 $first_name = $res->first_name;
-                                                $last_name = $res->last_name;
-                                                $full_name = "$first_name $last_name";
+                                                $surname = $res->surname;
+                                                $full_name = "$first_name $surname";
                                           } ?>
                                           <option value="<?= $userID ?>"><?= $userID ?> - <?= $full_name ?></option>
                                     <?php endforeach; ?>
+                                    </optgroup>
                               </select>
                         </div>
 
@@ -108,54 +111,59 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
       </div>
 
 
-<div id="manageSection" class="w-full fadeIn hidden">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
-            <div class="flex items-center gap-2">
-                  <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
-                        <i class="bx bx-history text-orange-600"></i>
+      <div id="manageSection" class="w-full fadeIn hidden">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                  <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
+                              <i class="bx bx-history text-orange-600"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-gray-800">Broadcast History</h3>
                   </div>
-                  <h3 class="text-lg font-bold text-gray-800">Broadcast History</h3>
-            </div>
-            <div class="flex items-center gap-3">
-                  <div class="relative w-full md:w-64 group">
-                        <i
-                              class="bx bx-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors"></i>
-                        <input type="text" id="broadcastSearch"
-                              class="w-full pl-11 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 transition shadow-sm"
-                              placeholder="Search broadcasts...">
+                  <div class="flex items-center gap-3">
+                        <div class="relative w-full md:w-64 group">
+                              <i
+                                    class="bx bx-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors"></i>
+                              <input type="text" id="broadcastSearch"
+                                    class="w-full pl-11 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 transition shadow-sm"
+                                    placeholder="Search broadcasts...">
+                        </div>
+                        <button id="broadcastCSV"
+                              class="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition shadow-sm flex items-center gap-2 cursor-pointer whitespace-nowrap">
+                              <i class="bx bx-arrow-big-down-line"></i> CSV
+                        </button>
                   </div>
-                  <button id="broadcastCSV"
-                        class="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition shadow-sm flex items-center gap-2 cursor-pointer whitespace-nowrap">
-                        <i class="bx bx-cloud-download"></i> CSV
-                  </button>
             </div>
-      </div>
 
-      <div class="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden">
-            <div class="overflow-x-auto">
-                  <table id="broadcastTable" class="w-full text-left border-collapse">
-                        <thead class="bg-gray-50/80 border-b border-gray-100">
-                              <tr>
-                                    <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                          Recipient</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                          Subject</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Date
-                                          Sent</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                          Status</th>
-                                    <th
-                                          class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">
-                                          Actions</th>
-                              </tr>
-                        </thead>
-                        <tbody id="broadcastBody" class="divide-y divide-gray-50">
-                              <!-- Loaded via AJAX -->
-                        </tbody>
-                  </table>
+            <div class="bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden">
+                  <div class="overflow-x-auto">
+                        <table id="broadcastTable" class="w-full text-left border-collapse">
+                              <thead class="bg-gray-50/80 border-b border-gray-100">
+                                    <tr>
+                                          <th
+                                                class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                                Recipient</th>
+                                          <th
+                                                class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                                Subject</th>
+                                          <th
+                                                class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                                Date
+                                                Sent</th>
+                                          <th
+                                                class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                                Status</th>
+                                          <th
+                                                class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">
+                                                Actions</th>
+                                    </tr>
+                              </thead>
+                              <tbody id="broadcastBody" class="divide-y divide-gray-50">
+                                    <!-- Loaded via AJAX -->
+                              </tbody>
+                        </table>
+                  </div>
             </div>
       </div>
-</div>
 </div>
 
 
@@ -182,9 +190,9 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
       });
 
       function loadBroadcasts() {
-            $("#broadcastBody").html('<tr><td colspan="5" class="px-6 py-8 text-center text-gray-400"><i class="bx bx-loader-alt bx-spin text-2xl"></i></td></tr>');
+            $("#broadcastBody").html('<tr><td colspan="5" class="px-6 py-8 text-center text-gray-400"><i class="bx bxs-loader-dots bx-spin text-2xl"></i></td></tr>');
             $.ajax({
-                  url: '/school_app/admin/auth/fetch_broadcasts.php',
+                  url: 'auth/fetch_broadcasts.php',
                   type: 'GET',
                   success: function (html) {
                         $("#broadcastBody").html(html);
@@ -216,7 +224,7 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
                         confirmButtonText: 'Yes, delete it!'
                   }).then((result) => {
                         if (result.isConfirmed) {
-                              $.post('/school_app/admin/auth/delete_broadcast.php', { id: id }, function (res) {
+                              $.post('auth/delete_broadcast.php', { id: id }, function (res) {
                                     if (res.success) {
                                           row.fadeOut(300, function () { $(this).remove(); });
                                           Swal.fire('Deleted!', 'Message deleted.', 'success');
@@ -232,7 +240,7 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
                   e.preventDefault();
                   const id = $(this).data('id');
 
-                  $.post('/school_app/admin/auth/get_broadcast.php', { id: id }, function (res) {
+                  $.post('auth/get_broadcast.php', { id: id }, function (res) {
                         if (res.success) {
                               const b = res.data;
                               Swal.fire({
@@ -262,7 +270,7 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
                                     }
                               }).then((result) => {
                                     if (result.isConfirmed) {
-                                          $.post('/school_app/admin/auth/update_broadcast.php', result.value, function (upd) {
+                                          $.post('auth/update_broadcast.php', result.value, function (upd) {
                                                 if (upd.success) {
                                                       Swal.fire('Saved!', 'Message updated.', 'success');
                                                       loadBroadcasts();
@@ -283,7 +291,7 @@ $result = $stmt->fetchAll(PDO::FETCH_OBJ);
             e.preventDefault();
 
             $.ajax({
-                  url: '/school_app/admin/auth/broadcastAuth.php',
+                  url: 'auth/broadcastAuth.php',
                   method: 'POST',
                   dataType: 'json',
                   data: {

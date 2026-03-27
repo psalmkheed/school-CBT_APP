@@ -72,3 +72,4 @@ uploads/
 # Large data files
 waec_questions.json
 questions\ bank.csv
+*.zip

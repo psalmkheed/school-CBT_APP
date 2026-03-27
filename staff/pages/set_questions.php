@@ -26,7 +26,7 @@ $total_questions = (int)$exam->num_quest;
 <div class="fadeIn w-full md:p-8 p-4">
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div class="flex items-center gap-4">
-            <button onclick="loadPage('/school_app/staff/pages/exams.php')"
+            <button onclick="loadPage('pages/exams.php')"
                   class="md:hidden size-10 shrink-0 rounded-full flex items-center justify-center text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all cursor-pointer"
                   data-tippy-content="Go Back">
                   <i class="bx bx-arrow-left-stroke text-4xl"></i>
@@ -39,7 +39,7 @@ $total_questions = (int)$exam->num_quest;
         
         <div class="bg-blue-50 px-4 py-2 rounded-xl border border-blue-100">
             <span class="text-xs font-bold text-blue-400 uppercase tracking-widest block">Progress</span>
-            <span class="text-sm font-black text-blue-700" id="progressText">Checking...</span>
+            <span class="text-sm font-semibold text-blue-700" id="progressText">Checking...</span>
         </div>
     </div>
 
@@ -81,17 +81,17 @@ $total_questions = (int)$exam->num_quest;
                                 <!-- Format buttons (always visible) -->
                                 <div class="flex items-center gap-1 px-3 py-2 border-r border-gray-200 shrink-0">
                                     <button type="button" data-fmt="bold"
-                                        class="fmt-btn size-8 rounded-lg hover:bg-white hover:text-blue-600 hover:shadow-sm text-gray-500 font-black text-sm transition-all cursor-pointer flex items-center justify-center"
+                                        class="fmt-btn size-8 rounded-lg hover:bg-white hover:text-blue-600 hover:shadow-sm text-gray-500 font-semibold text-sm transition-all cursor-pointer flex items-center justify-center"
                                         title="Bold"><b>B</b></button>
                                     <button type="button" data-fmt="italic"
                                         class="fmt-btn size-8 rounded-lg hover:bg-white hover:text-blue-600 hover:shadow-sm text-gray-500 text-sm transition-all cursor-pointer flex items-center justify-center italic font-semibold"
                                         title="Italic">I</button>
                                     <button type="button" data-fmt="sup"
                                         class="fmt-btn px-2.5 h-8 rounded-lg hover:bg-white hover:text-blue-600 hover:shadow-sm text-gray-500 text-xs font-bold transition-all cursor-pointer flex items-center justify-center"
-                                        title="Superscript — wrap selected text in &lt;sup&gt;">x<sup class="text-[8px] font-black">2</sup></button>
+                                        title="Superscript — wrap selected text in &lt;sup&gt;">x<sup class="text-[8px] font-semibold">2</sup></button>
                                     <button type="button" data-fmt="sub"
                                         class="fmt-btn px-2.5 h-8 rounded-lg hover:bg-white hover:text-blue-600 hover:shadow-sm text-gray-500 text-xs font-bold transition-all cursor-pointer flex items-center justify-center"
-                                        title="Subscript — wrap selected text in &lt;sub&gt;">x<sub class="text-[8px] font-black">2</sub></button>
+                                        title="Subscript — wrap selected text in &lt;sub&gt;">x<sub class="text-[8px] font-semibold">2</sub></button>
                                 </div>
 
                                 <!-- Category tabs -->
@@ -104,7 +104,7 @@ $total_questions = (int)$exam->num_quest;
                                     ];
                                     foreach($tabs as $i => $tab): ?>
                                         <button type="button"
-                                            class="sym-tab shrink-0 px-3 py-2.5 text-[11px] font-black uppercase tracking-wider transition-all cursor-pointer border-b-2 <?= $i === 0 ? 'border-blue-500 text-blue-600 bg-white' : 'border-transparent text-gray-400 hover:text-gray-600 hover:bg-gray-100/60' ?>"
+                                            class="sym-tab shrink-0 px-3 py-2.5 text-[11px] font-semibold uppercase tracking-wider transition-all cursor-pointer border-b-2 <?= $i === 0 ? 'border-blue-500 text-blue-600 bg-white' : 'border-transparent text-gray-400 hover:text-gray-600 hover:bg-gray-100/60' ?>"
                                             data-tab="<?= $tab ?>">
                                             <?= $tab ?>
                                         </button>
@@ -200,7 +200,7 @@ $total_questions = (int)$exam->num_quest;
                                     <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Diagram / Shape (Optional)</span>
                                 </div>
                                 <button type="button" onclick="$('#question_image_input').click()"
-                                    class="text-[10px] font-black text-blue-600 uppercase tracking-widest hover:text-blue-700 cursor-pointer flex items-center gap-1 bg-white px-3 py-1.5 rounded-lg shadow-sm border border-blue-50">
+                                    class="text-[10px] font-semibold text-blue-600 uppercase tracking-widest hover:text-blue-700 cursor-pointer flex items-center gap-1 bg-white px-3 py-1.5 rounded-lg shadow-sm border border-blue-50">
                                     <i class="bx bx-cloud-upload"></i> Upload Image
                                 </button>
                                 <input type="file" name="question_image" id="question_image_input" class="hidden" accept="image/*" onchange="previewDiagram(this)">
@@ -221,7 +221,7 @@ $total_questions = (int)$exam->num_quest;
 
                         <!-- Live Preview -->
                         <div id="questionPreview" class="hidden mt-2 p-4 bg-blue-50 border border-blue-100 rounded-2xl text-gray-800 font-medium text-sm leading-relaxed">
-                            <p class="text-[9px] font-black text-blue-400 uppercase tracking-widest mb-2">Preview</p>
+                            <p class="text-[9px] font-semibold text-blue-400 uppercase tracking-widest mb-2">Preview</p>
                             <div id="previewContent"></div>
                         </div>
                     </div>
@@ -232,7 +232,7 @@ $total_questions = (int)$exam->num_quest;
                         <div class="flex gap-2">
                             <label class="cursor-pointer">
                                 <input type="radio" name="question_type" value="mcq" id="type_mcq" class="hidden peer" checked>
-                                <div class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wide border-2 transition-all
+                                <div class="px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wide border-2 transition-all
                                     peer-checked:bg-blue-600 peer-checked:text-white peer-checked:border-blue-600
                                     bg-white text-gray-400 border-gray-200 hover:border-blue-300">
                                     <i class="bx bx-list-ul mr-1"></i>MCQ
@@ -240,7 +240,7 @@ $total_questions = (int)$exam->num_quest;
                             </label>
                             <label class="cursor-pointer">
                                 <input type="radio" name="question_type" value="fill_blank" id="type_fill" class="hidden peer">
-                                <div class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wide border-2 transition-all
+                                <div class="px-4 py-2 rounded-xl text-xs font-semibold uppercase tracking-wide border-2 transition-all
                                     peer-checked:bg-amber-500 peer-checked:text-white peer-checked:border-amber-500
                                     bg-white text-gray-400 border-gray-200 hover:border-amber-300">
                                     <i class="bx bx-pencil mr-1"></i>Fill in Blank
@@ -277,7 +277,7 @@ $total_questions = (int)$exam->num_quest;
                                     <i class="bx bx-pencil text-sm"></i>
                                 </div>
                                 <div>
-                                    <p class="text-xs font-black text-amber-700 uppercase tracking-widest">Fill in the Blank</p>
+                                    <p class="text-xs font-semibold text-amber-700 uppercase tracking-widest">Fill in the Blank</p>
                                     <p class="text-[10px] text-amber-500">Student will type their answer. Graded case-insensitively.</p>
                                 </div>
                             </div>
@@ -337,7 +337,7 @@ $total_questions = (int)$exam->num_quest;
                     <i class="bx bx-robot text-xl"></i>
                 </div>
                 <div>
-                    <h3 class="font-black text-gray-800">AI Question Generator</h3>
+                    <h3 class="font-semibold text-gray-800">AI Question Generator</h3>
                     <p class="text-[10px] text-violet-500 font-bold uppercase tracking-wider">Powered by Groq</p>
                 </div>
             </div>
@@ -376,7 +376,7 @@ $total_questions = (int)$exam->num_quest;
             <!-- Results Area -->
             <div id="aiResultsArea" class="hidden mt-6">
                 <div class="flex items-center justify-between mb-4">
-                    <p class="text-xs font-black text-gray-500 uppercase tracking-widest">Generated Questions</p>
+                    <p class="text-xs font-semibold text-gray-500 uppercase tracking-widest">Generated Questions</p>
                     <div class="flex items-center gap-2">
                         <span id="aiQCounter" class="text-xs font-bold text-violet-600"></span>
                         <button onclick="runAiGenerate()" class="text-xs text-gray-400 hover:text-violet-600 font-bold transition cursor-pointer">
@@ -387,7 +387,7 @@ $total_questions = (int)$exam->num_quest;
 
                 <!-- Single question navigator -->
                 <div id="aiQCard" class="bg-violet-50 border border-violet-100 rounded-2xl p-5">
-                    <p class="text-[10px] font-black text-violet-400 uppercase tracking-widest mb-2" id="aiQLabel">Question 1</p>
+                    <p class="text-[10px] font-semibold text-violet-400 uppercase tracking-widest mb-2" id="aiQLabel">Question 1</p>
                     <p class="text-sm font-semibold text-gray-800 leading-relaxed mb-4" id="aiQText"></p>
                     <div class="space-y-2" id="aiQOpts"></div>
                 </div>
@@ -414,8 +414,21 @@ let currentQuestion = 1;
 const totalQs = <?= $total_questions ?>;
 const examId = <?= $exam_id ?>;
 
+// ── Helper to clear image input and preview ──────────────────────────────
+function clearImageInput() {
+    $("#question_image_input").val("");
+    // Forced reset for browser UI labels
+    const $input = $("#question_image_input");
+    $input.replaceWith($input.clone(true));
+
+    $("#diagramPreview").addClass("hidden");
+    $("#diagram_img").attr('src', '');
+    $("#diagramHint").removeClass("hidden");
+    $("#remove_existing_image").val("0");
+}
+
 function updateProgress() {
-    $.post('/school_app/staff/auth/get_exam_progress.php', { exam_id: examId }, function(data) {
+    $.post('auth/get_exam_progress.php', { exam_id: examId }, function(data) {
         if (data.success) {
             $("#progressText").text(`${data.count} / ${totalQs} Set`);
             // Update nav colors
@@ -436,10 +449,14 @@ function loadQuestion(num) {
     currentQuestion = num;
     $("#currentQNum").val(num);
     $("#loadingOverlay").removeClass("hidden");
+    
+    // Reset image states immediately
+    clearImageInput();
+    
     $("#questionForm")[0].reset();
     $("#existing_id").val("");
 
-    $.post('/school_app/staff/auth/get_question.php', { exam_id: examId, q_num: num }, function(data) {
+    $.post('auth/get_question.php', { exam_id: examId, q_num: num }, function(data) {
         $("#loadingOverlay").addClass("hidden");
         if (data.success && data.question) {
             $("#question_text").val(data.question.question_text);
@@ -460,7 +477,7 @@ function loadQuestion(num) {
 
             // Handle Question Image
             if (data.question.question_image) {
-                $("#diagram_img").attr('src', '/school_app/uploads/questions/' + data.question.question_image);
+                $("#diagram_img").attr('src', '../uploads/questions/' + data.question.question_image);
                 $("#diagramPreview").removeClass("hidden");
                 $("#diagramHint").addClass("hidden");
             } else {
@@ -472,8 +489,6 @@ function loadQuestion(num) {
             $("#diagramPreview").addClass("hidden");
             $("#diagramHint").removeClass("hidden");
         }
-        $("#remove_existing_image").val("0");
-        $("#question_image_input").val(""); // clear file input
         updateProgress();
         
         // Update Next vs Finish button on last question
@@ -515,7 +530,7 @@ function deleteQuestion() {
         confirmButtonText: 'Yes, delete it!'
     }).then((result) => {
         if (result.isConfirmed) {
-            $.post('/school_app/staff/auth/delete_question.php', { id: id, exam_id: examId }, function(data) {
+            $.post('auth/delete_question.php', { id: id, exam_id: examId }, function(data) {
                 if (data.success) {
                     window.showToast("Question deleted", "success");
                     loadQuestion(currentQuestion);
@@ -544,7 +559,7 @@ $("#questionForm").on("submit", function(e) {
     const formData = new FormData(this); // Use FormData for file uploads
 
     $.ajax({
-        url: '/school_app/staff/auth/save_question.php',
+        url: 'auth/save_question.php',
         method: 'POST',
         data: formData,
         processData: false, // Required for FormData
@@ -555,6 +570,9 @@ $("#questionForm").on("submit", function(e) {
         },
         success: function(data) {
             if (data.success) {
+                // Clear state immediately using our new helper
+                clearImageInput();
+                
                 window.showToast("Question saved successfully!", "success");
                 updateProgress();
                 
@@ -564,14 +582,11 @@ $("#questionForm").on("submit", function(e) {
                 if (navDir === 1 && currentQuestion === totalQs) {
                     // Clicking Finish on the last page
                     setTimeout(() => {
-                        window.loadPage('/school_app/staff/pages/exams.php');
+                        window.loadPage('pages/exams.php');
                     }, 800);
                 } else if (navDir) {
-                    // Navigate after save
+                    // Navigate if user clicked Next or Prev
                     loadQuestion(currentQuestion + navDir);
-                } else if (currentQuestion < totalQs) {
-                    // Simple "Save Question" click while not on last, auto-next anyway
-                    setTimeout(() => loadQuestion(currentQuestion + 1), 500);
                 } else {
                     // Just stay on current question if saved but no navigation
                     loadQuestion(currentQuestion);
@@ -725,7 +740,7 @@ function runAiGenerate() {
     $('#aiResultsArea').addClass('hidden');
 
     $.ajax({
-        url: '/school_app/admin/auth/ai_generate.php',
+        url: '../admin/auth/ai_generate.php',
         type: 'POST',
         data: {
             subject: '<?= addslashes($exam->subject) ?>',
@@ -771,7 +786,7 @@ function runAiGenerate() {
         $('#aiQOpts').html(opts.map(o => {
             const isCorrect = o.key === q.correct_answer;
             return `<div class="flex items-center gap-3 p-2.5 rounded-xl border ${isCorrect ? 'bg-green-50 border-green-200' : 'bg-white border-gray-100'}">
-            <div class="size-7 shrink-0 rounded-lg ${badgeColors[o.key] || 'bg-gray-500'} ${isCorrect ? '' : 'opacity-60'} flex items-center justify-center text-white text-xs font-black">${o.key}</div>
+            <div class="size-7 shrink-0 rounded-lg ${badgeColors[o.key] || 'bg-gray-500'} ${isCorrect ? '' : 'opacity-60'} flex items-center justify-center text-white text-xs font-semibold">${o.key}</div>
             <span class="text-sm ${isCorrect ? 'text-green-800 font-bold' : 'text-gray-600'}">${o.text}</span>
             ${isCorrect ? '<i class="bx bx-check-circle text-green-500 ml-auto"></i>' : ''}
         </div>`;
@@ -793,8 +808,12 @@ function runAiGenerate() {
         $('#option_c').val(q.option_c);
         $('#option_d').val(q.option_d);
         $(`input[name="correct_answer"][value="${q.correct_answer}"]`).prop('checked', true);
-
+        
+        // Clear any existing image when inserting an AI question
+        clearImageInput();
+        
         closeAiModal();
         window.showToast(`Question ${aiQIndex + 1} inserted! Review and save.`, 'success');
+        updatePreview();
     }
 </script>

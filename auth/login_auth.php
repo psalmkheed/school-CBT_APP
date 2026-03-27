@@ -54,10 +54,22 @@ if ($user->status == 0) {
     exit;
 }
 
+// Check Maintenance Mode
+if (!in_array($user->role, ['super', 'admin'])) {
+    $maintenance_check = $conn->query("SELECT maintenance_mode FROM school_config LIMIT 1");
+    if ($maintenance_check && $maintenance_check->fetchColumn() == 1) {
+        recordActivity($conn, 'LOGIN_BLOCKED', "User {$user->user_id} tried to log in during Maintenance Mode.", 'info');
+        unset($_SESSION['user_id']);
+        $response["message"] = "System is currently undergoing maintenance. Please try again later.";
+        echo json_encode($response);
+        exit;
+    }
+}
+
     $_SESSION['user_id'] = $user->id;
     $_SESSION['username'] = $user->user_id;
     $_SESSION['first_name'] = $user->first_name;
-    $_SESSION['last_name'] = $user->last_name;
+    $_SESSION['surname'] = $user->surname;
     $_SESSION['role'] = $user->role;
     $_SESSION['show_welcome'] = true;
 

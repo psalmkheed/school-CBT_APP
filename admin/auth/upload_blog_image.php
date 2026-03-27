@@ -27,7 +27,7 @@ if (isset($_FILES['upload'])) {
       $destination = $uploadDir . $newName;
 
       if (move_uploaded_file($file['tmp_name'], $destination)) {
-            echo json_encode(['url' => '/school_app/uploads/blogs/' . $newName]);
+            echo json_encode(['url' => $base . 'uploads/blogs/' . $newName]);
       } else {
             http_response_code(500);
             echo json_encode(['error' => ['message' => 'Upload failed']]);

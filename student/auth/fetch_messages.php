@@ -10,7 +10,7 @@ $changed_since = $_GET['changed_since'] ?? null;
 
 $query = "
     SELECT m.id, m.message, m.sent_at, m.attachment, m.attachment_type, m.is_deleted, m.is_edited, m.updated_at,
-           u.first_name, u.last_name, u.user_id,
+           u.first_name, u.surname, u.user_id,
            m.user_id AS sender_id
     FROM class_messages m
     JOIN users u ON m.user_id = u.id

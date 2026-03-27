@@ -6,17 +6,20 @@ if ($user->role !== 'staff') {
     exit('Unauthorized');
 }
 
-$staff_fullname = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
+$staff_fullname = $_SESSION['first_name'] . ' ' . $_SESSION['surname'];
+$active_session = $_SESSION['active_session'] ?? '';
+$active_term = $_SESSION['active_term'] ?? '';
 
-// Fetch results for exams created by this teacher
+// Fetch results for exams created by this teacher for this active term
 $stmt = $conn->prepare("
     SELECT 
         e.subject,
         e.exam_type,
         e.class AS exam_class,
         u.first_name,
-        u.last_name,
+        u.surname,
         u.class,
+        u.id AS user_id,
         r.score,
         r.total_questions,
         r.percentage,
@@ -25,10 +28,22 @@ $stmt = $conn->prepare("
     JOIN exams e ON r.exam_id = e.id
     JOIN users u ON r.user_id = u.id
     WHERE e.subject_teacher = :teacher
+    AND e.session = :session AND e.term = :term
+    AND e.class IN (
+        SELECT c.class 
+        FROM teacher_assignments ta 
+        JOIN class c ON ta.class_id = c.id 
+        WHERE ta.teacher_id = :tid
+    )
     ORDER BY r.taken_at DESC
     LIMIT 200
 ");
-$stmt->execute([':teacher' => $staff_fullname]);
+$stmt->execute([
+    ':teacher' => $staff_fullname, 
+    ':tid' => $user->id,
+    ':session' => $active_session,
+    ':term' => $active_term
+]);
 $results = $stmt->fetchAll(PDO::FETCH_OBJ);
 
 ?>
@@ -59,7 +74,7 @@ $results = $stmt->fetchAll(PDO::FETCH_OBJ);
             </button>
             <button id="staffResultCSV"
                 class="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-500 transition shadow-md flex items-center gap-2 cursor-pointer">
-                <i class="bx bx-cloud-download"></i> Download CSV
+                <i class="bx bx-arrow-big-down-line"></i> Download CSV
             </button>
         </div>
     </div>
@@ -75,6 +90,7 @@ $results = $stmt->fetchAll(PDO::FETCH_OBJ);
                         <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Score</th>
                         <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Date Taken</th>
                         <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Status</th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="staffResultBody" class="divide-y divide-gray-50">
@@ -86,7 +102,7 @@ $results = $stmt->fetchAll(PDO::FETCH_OBJ);
                         ?>
                             <tr class="hover:bg-gray-50/80 transition-colors group">
                                 <td class="px-6 py-4 text-sm font-bold text-gray-800">
-                                    <?= htmlspecialchars($item->first_name . ' ' . $item->last_name) ?>
+                                    <?= htmlspecialchars($item->first_name . ' ' . $item->surname) ?>
                                     <span class="block text-[10px] font-semibold text-gray-400 uppercase"><?= htmlspecialchars($item->class) ?></span>
                                 </td>
                                 <td class="px-6 py-4">
@@ -106,9 +122,17 @@ $results = $stmt->fetchAll(PDO::FETCH_OBJ);
                                     <?= date('M j, Y • g:i A', strtotime($item->taken_at)) ?>
                                 </td>
                                 <td class="px-6 py-4 text-right">
-                                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider <?= $statusColor ?>">
-                                        <?= $statusText ?> (<?= round($percent) ?>%)
-                                    </span>
+                                    <div class="flex items-center justify-end gap-2">
+                                        <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider <?= $statusColor ?>">
+                                            <?= $statusText ?> (<?= round($percent) ?>%)
+                                        </span>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <a href="<?= $base ?>auth/generate_report_card.php?student_id=<?= $item->user_id ?>" target="_blank"
+                                            class="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all" title="Print Report Card">
+                                            <i class="bx bx-printer text-xl"></i>
+                                        </a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

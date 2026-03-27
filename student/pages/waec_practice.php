@@ -53,7 +53,7 @@ foreach ($subjects as $subj) {
         </div>
         <div class="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
             <div class="flex items-center gap-3 mb-2">
-                <div class="size-10 rounded-xl bg-green-50 flex items-center justify-center text-green-600"><i class="bx bx-list-check text-xl"></i></div>
+                <div class="size-10 rounded-xl bg-green-50 flex items-center justify-center text-green-600"><i class="bx bxs-list-ul text-xl"></i></div>
             </div>
             <?php $totalQ = $conn->query("SELECT COUNT(*) FROM waec_questions")->fetchColumn(); ?>
             <p class="text-2xl font-bold text-gray-800"><?= number_format($totalQ) ?></p>
@@ -236,7 +236,7 @@ function startWaecPractice() {
     // Load practice quiz via AJAX
     $('#mainContent').fadeOut(300, function() {
         $.ajax({
-            url: '/school_app/student/pages/waec_practice_quiz.php',
+            url: 'pages/waec_practice_quiz.php',
             type: 'POST',
             data: { subject: selectedSubject, topic: topic, count: selectedCount },
             success: function(response) {

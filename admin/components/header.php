@@ -1,13 +1,14 @@
 <?php
 
-$scheme  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-DEFINE("APP_URL", $scheme . '://' . $_SERVER['HTTP_HOST'] . '/school_app/');
+// APP_URL is defined globally in connections/db.php
 $base = APP_URL;
-
 $role = $_SESSION['role'];
 
 ?>
-
+<script>
+      window.APP_URL = "<?= APP_URL ?>";
+      window.BASE_URL = "<?= $base_path ?>";
+</script>
 <?php
 $stmt = $conn->prepare('SELECT * FROM school_config');
 
@@ -62,12 +63,12 @@ if (isset($_SESSION['session_end_date'])) {
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title><?= strtoupper(explode(' ',$sch_config->school_name)[0]) ?> CBT Portal <?= ucfirst($role) ?> - Dashboard
       </title>
-      <link rel="manifest" href="/school_app/manifest.php">
+      <link rel="manifest" href="<?= $base ?>manifest.php">
       <meta name="theme-color" content="<?= $primary ?>">
       <meta name="mobile-web-app-capable" content="yes">
       <meta name="apple-mobile-web-app-capable" content="yes">
       <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-      <link rel="icon" type="image" href="<?= $base ?>uploads/school_logo/<?= $sch_config->school_logo ?>" />
+      <link rel="icon" type="image" href="<?= $base . ltrim($sch_config->school_logo ?? '', '/') ?>" />
       <link href="<?= $base ?>src/fontawesome.css" rel="stylesheet">
       <link href="<?= $base ?>src/swiper.css" rel="stylesheet">
       <link href="<?= $base ?>src/boxicons.css" rel="stylesheet">
@@ -83,8 +84,8 @@ if (isset($_SESSION['session_end_date'])) {
       <script src="https://unpkg.com/tippy.js@6"></script>
       <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/animations/shift-away.css" />
 
-      <link rel="stylesheet" href="/school_app/assets/ckeditor/ckeditor5/ckeditor5.css">
-      <link rel="stylesheet" href="/school_app/assets/ckeditor/ckeditor5/ckeditor5-content.css">
+      <link rel="stylesheet" href="<?= $base ?>assets/ckeditor/ckeditor5/ckeditor5.css">
+      <link rel="stylesheet" href="<?= $base ?>assets/ckeditor/ckeditor5/ckeditor5-content.css">
 
       <!-- Restore heading & content styles inside CKEditor (Tailwind preflight resets them) -->
       <style>
@@ -110,16 +111,16 @@ if (isset($_SESSION['session_end_date'])) {
       <script type="importmap">
       {
             "imports": {
-                  "ckeditor5": "/school_app/assets/ckeditor/ckeditor5/ckeditor5.js?v=<?= time() ?>",
-                  "ckeditor5/": "/school_app/assets/ckeditor/ckeditor5/"
+                  "ckeditor5": "<?= $base ?>assets/ckeditor/ckeditor5/ckeditor5.js?v=<?= time() ?>",
+                  "ckeditor5/": "<?= $base ?>assets/ckeditor/ckeditor5/"
             }
       }
       </script>
       <script type="module">
             console.log('Header Diagnostics: Checking for CKEditor scripts...');
       </script>
-      <script type="module" src="/school_app/assets/ckeditor/main.js?v=<?= time() ?>"
-            onerror="console.error('Fatal: Failed to load main.js module file at /school_app/assets/ckeditor/main.js'); alert('Editor script loading failed. Check console.');">
+      <script type="module" src="<?= $base ?>assets/ckeditor/main.js?v=<?= time() ?>"
+            onerror="console.error('Fatal: Failed to load main.js module file at <?= $base ?>assets/ckeditor/main.js'); alert('Editor script loading failed. Check console.');">
             </script>
       <script>
             console.log('Loader: Header parsed successfully. Document URL: ', window.location.href);
@@ -149,7 +150,7 @@ if (isset($_SESSION['session_end_date'])) {
 
 </head>
 
-<body class="select-none user-admin">
-      <div class="w-full">
+<body class="user-admin bg-[#f1f1f1]">
+      <div class="w-full bg-[#f1f1f1] min-h-screen">
 
       

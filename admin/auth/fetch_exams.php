@@ -1,5 +1,6 @@
 <?php
 require '../../connections/db.php';
+if (session_status() === PHP_SESSION_NONE) { session_start(); }
 
 $page = isset($_POST['page']) ? (int) $_POST['page'] : 1;
 $limit = 10;
@@ -9,13 +10,19 @@ if ($page < 1)
 
 $offset = ($page - 1) * $limit;
 
+$session = $_SESSION['active_session'] ?? '';
+$term = $_SESSION['active_term'] ?? '';
+
 /* FETCH DATA */
 $stmt = $conn->prepare("
     SELECT * FROM exams
+    WHERE session = :session AND term = :term
     ORDER BY id asc
     LIMIT :limit OFFSET :offset
 ");
 
+$stmt->bindValue(':session', $session, PDO::PARAM_STR);
+$stmt->bindValue(':term', $term, PDO::PARAM_STR);
 $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
 $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
@@ -23,7 +30,9 @@ $stmt->execute();
 $exams = $stmt->fetchAll(PDO::FETCH_OBJ);
 
 /* COUNT TOTAL */
-$totalRecords = $conn->query("SELECT COUNT(*) FROM exams")->fetchColumn();
+$countStmt = $conn->prepare("SELECT COUNT(*) FROM exams WHERE session = :session AND term = :term");
+$countStmt->execute([':session' => $session, ':term' => $term]);
+$totalRecords = $countStmt->fetchColumn();
 $totalPages = ceil($totalRecords / $limit);
 ?>
 

@@ -1,10 +1,9 @@
 const CACHE_NAME = 'school-portal-cache-v2'; // Bump version
 const STATIC_ASSETS = [
-  '/school_app/src/output.css',
-  '/school_app/src/boxicons.css',
-  '/school_app/src/jquery.js',
-  '/school_app/src/scripts.js',
-  '/school_app/src/office-workplace.svg'
+  './src/output.css',
+  './src/boxicons.css',
+  './src/jquery.js',
+  './src/scripts.js'
 ];
 
 // Install Service Worker
@@ -37,12 +36,16 @@ self.addEventListener('activate', event => {
 
 // Fetch Strategy
 self.addEventListener('fetch', event => {
-  // 1. Skip non-GET requests and external URLs
+  // 1. Skip non-GET requests
   if (event.request.method !== 'GET') return;
-  
+
   const url = new URL(event.request.url);
-  
-  // 2. NETWORK FIRST for PHP/HTML (Dynamic Content)
+
+  // 2. Skip non-http/https schemes (e.g. chrome-extension://, data:, blob:)
+  //    These cannot be cached and would throw a TypeError
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+
+  // 3. NETWORK FIRST for PHP/HTML (Dynamic Content)
   // This ensures logout/session redirects work properly
   if (url.pathname.endsWith('.php') || url.pathname.endsWith('/') || !url.pathname.includes('.')) {
     event.respondWith(

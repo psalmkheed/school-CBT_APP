@@ -110,7 +110,7 @@ header('Content-Type: text/html; charset=utf-8');
     ?>
     
     <div style="margin-top: 30px;">
-        <a href="/school_app/admin/" style="padding: 10px 20px; background: #3b82f6; color: white; text-decoration: none; border-radius: 5px;">← Back to Admin</a>
+        <a href="<?= $base ?>admin/" style="padding: 10px 20px; background: #3b82f6; color: white; text-decoration: none; border-radius: 5px;">← Back to Admin</a>
     </div>
 </body>
 </html>

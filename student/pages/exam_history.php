@@ -2,15 +2,18 @@
 require_once __DIR__ . '/../../connections/db.php';
 require_once __DIR__ . '/../../auth/check.php';
 
+$active_session = $_SESSION['active_session'] ?? '';
+$active_term = $_SESSION['active_term'] ?? '';
+
 // Fetch all exam results for this student
 $stmt = $conn->prepare("
     SELECT e.subject, e.exam_type, e.class, e.paper_type, r.*
     FROM exam_results r
     JOIN exams e ON r.exam_id = e.id
-    WHERE r.user_id = :user_id
+    WHERE r.user_id = :user_id AND e.session = :sess AND e.term = :term
     ORDER BY r.taken_at DESC
 ");
-$stmt->execute([':user_id' => $user->id]);
+$stmt->execute([':user_id' => $user->id, ':sess' => $active_session, ':term' => $active_term]);
 $history = $stmt->fetchAll(PDO::FETCH_OBJ);
 
 $totalExams  = count($history);
@@ -35,6 +38,13 @@ $failedCount = count(array_filter($history, fn($r) => (float) $r->percentage <= 
                     class="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-100 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm"
                     placeholder="Search history...">
             </div>
+            <!-- do not show this print report card for students -->
+            <?php if ($_SESSION['role'] !== 'student'): ?>
+                <a href="<?= $base ?>auth/generate_report_card.php?student_id=<?= $user->id ?>" target="_blank"
+                    class="self-start sm:self-auto flex items-center gap-2 px-6 py-3 bg-white border-2 border-blue-600 text-blue-600 rounded-2xl font-bold text-sm hover:bg-blue-50 transition-all cursor-pointer">
+                    <i class="bx bx-printer text-lg"></i> Print Report Card
+                </a>
+            <?php endif ?>
             <button onclick="$('#sideTest').click()"
                 class="self-start sm:self-auto flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-2xl font-bold text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 cursor-pointer">
                 <i class="bx bx-pencil text-lg"></i> Take New Exam
@@ -43,34 +53,42 @@ $failedCount = count(array_filter($history, fn($r) => (float) $r->percentage <= 
     </div>
 
     <!-- ── Summary Stats ─────────────────────────────────────── -->
-    <div class="grid grid-cols-4 gap-4 mb-8">
-        <div class="bg-white rounded-3xl p-2 md:p-4 border border-gray-100 shadow-sm flex flex-col gap-2">
-            <div class="size-10 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="glass rounded-3xl p-5 border border-white shadow-sm flex flex-col gap-2 hover-lift group">
+            <div class="size-10 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
                 <i class="bx bx-book-content text-xl"></i>
             </div>
-            <p class="text-2xl font-black text-gray-800 tabular-nums"><?= $totalExams ?></p>
-            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Exams Taken</p>
+            <div>
+                <p class="text-2xl font-semibold text-gray-800 tabular-nums leading-none"><?= $totalExams ?></p>
+                <p class="text-[9px] font-semibold text-gray-400 uppercase tracking-widest mt-1">Exams Taken</p>
+            </div>
         </div>
-        <div class="bg-white rounded-3xl p-2 md:p-5 border border-gray-100 shadow-sm flex flex-col gap-2">
-            <div class="size-10 rounded-2xl bg-green-50 flex items-center justify-center text-green-600">
+        <div class="glass rounded-3xl p-5 border border-white shadow-sm flex flex-col gap-2 hover-lift group">
+            <div class="size-10 rounded-2xl bg-green-500/10 flex items-center justify-center text-green-600 group-hover:bg-green-600 group-hover:text-white transition-all duration-300">
                 <i class="bx bx-trending-up text-xl"></i>
             </div>
-            <p class="text-2xl font-black text-gray-800 tabular-nums"><?= round($avgScore) ?>%</p>
-            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Average Score</p>
+            <div>
+                <p class="text-2xl font-semibold text-gray-800 tabular-nums leading-none"><?= round($avgScore) ?>%</p>
+                <p class="text-[9px] font-semibold text-gray-400 uppercase tracking-widest mt-1">Average Score</p>
+            </div>
         </div>
-        <div class="bg-white rounded-3xl p-2 md:p-5 border border-gray-100 shadow-sm flex flex-col gap-2">
-            <div class="size-10 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600">
+        <div class="glass rounded-3xl p-5 border border-white shadow-sm flex flex-col gap-2 hover-lift group">
+            <div class="size-10 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all duration-300">
                 <i class="bx bx-medal text-xl"></i>
             </div>
-            <p class="text-2xl font-black text-gray-800 tabular-nums"><?= $passedCount ?></p>
-            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Passed</p>
+            <div>
+                <p class="text-2xl font-semibold text-gray-800 tabular-nums leading-none"><?= $passedCount ?></p>
+                <p class="text-[9px] font-semibold text-gray-400 uppercase tracking-widest mt-1">Passed</p>
+            </div>
         </div>
-        <div class="bg-white rounded-3xl p-2 md:p-5 border border-gray-100 shadow-sm flex flex-col gap-2">
-            <div class="size-10 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600">
+        <div class="glass rounded-3xl p-5 border border-white shadow-sm flex flex-col gap-2 hover-lift group">
+            <div class="size-10 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-600 group-hover:bg-red-600 group-hover:text-white transition-all duration-300">
                 <i class="bx bxs-sad text-xl"></i>
             </div>
-            <p class="text-2xl font-black text-gray-800 tabular-nums"><?= $failedCount ?></p>
-            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Failed</p>
+            <div>
+                <p class="text-2xl font-semibold text-gray-800 tabular-nums leading-none"><?= $failedCount ?></p>
+                <p class="text-[9px] font-semibold text-gray-400 uppercase tracking-widest mt-1">Failed</p>
+            </div>
         </div>
     </div>
 
@@ -84,7 +102,7 @@ $failedCount = count(array_filter($history, fn($r) => (float) $r->percentage <= 
                 $circumference = 100.5; // 2 * pi * 16 ≈ 100.5
                 $dashOffset = $circumference - ($pct / 100) * $circumference;
             ?>
-                <div class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 group">
+                <div class="glass rounded-3xl border border-gray-100 shadow-sm hover-lift group">
                     <div class="flex items-center gap-4 p-5">
 
                         <!-- Mini Score Ring -->
@@ -99,17 +117,17 @@ $failedCount = count(array_filter($history, fn($r) => (float) $r->percentage <= 
                                     stroke-linecap="round"/>
                             </svg>
                             <div class="absolute inset-0 flex items-center justify-center">
-                                <span class="text-[10px] font-black text-gray-700 tabular-nums"><?= round($pct) ?>%</span>
+                                <span class="text-[10px] font-semibold text-gray-700 tabular-nums"><?= round($pct) ?>%</span>
                             </div>
                         </div>
 
                         <!-- Info -->
                         <div class="flex-1 min-w-0">
                             <div class="flex items-center gap-2 mb-0.5">
-                                <h4 class="text-base font-black text-gray-800 truncate group-hover:text-blue-600 transition-colors">
+                                <h4 class="text-base font-semibold text-gray-800 truncate group-hover:text-blue-600 transition-colors">
                                     <?= htmlspecialchars($res->subject) ?>
                                 </h4>
-                                <span class="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wide shrink-0
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-semibold uppercase tracking-wide shrink-0
                                     <?= $passed ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600' ?>">
                                     <?= $passed ? 'Passed' : 'Failed' ?>
                                 </span>
@@ -123,7 +141,7 @@ $failedCount = count(array_filter($history, fn($r) => (float) $r->percentage <= 
 
                         <!-- View Button -->
                         <button onclick="viewResult(<?= $res->exam_id ?>)"
-                            class="shrink-0 px-5 py-2.5 bg-gray-50 border border-gray-100 text-gray-500 rounded-2xl font-black text-xs uppercase tracking-wide hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all cursor-pointer">
+                            class="shrink-0 px-5 py-2.5 bg-gray-50 border border-gray-100 text-gray-500 rounded-2xl font-semibold text-xs uppercase tracking-wide hover:bg-blue-600 hover:text-white hover:border-blue-600 transition-all cursor-pointer">
                             Review
                         </button>
                     </div>
@@ -133,11 +151,11 @@ $failedCount = count(array_filter($history, fn($r) => (float) $r->percentage <= 
 
     <?php else: ?>
         <!-- Empty State -->
-        <div class="py-28 bg-white rounded-[3rem] border-2 border-dashed border-gray-100 flex flex-col items-center justify-center text-center px-8">
-            <div class="size-24 bg-gray-50 rounded-[2rem] border border-gray-100 shadow-inner flex items-center justify-center mb-6">
+        <div class="py-28 glass rounded-[3rem] border-2 border-white flex flex-col items-center justify-center text-center px-8">
+            <div class="size-24 bg-blue-50 rounded-[2rem] border border-blue-100 shadow-inner flex items-center justify-center mb-6">
                 <i class="bx bx-history text-5xl text-gray-200"></i>
             </div>
-            <h4 class="text-2xl font-black text-gray-800 mb-2">No Exams Taken Yet</h4>
+            <h4 class="text-2xl font-semibold text-gray-800 mb-2">No Exams Taken Yet</h4>
             <p class="text-gray-400 font-medium max-w-xs leading-relaxed text-sm">
                 Once you complete an exam, your scores and detailed performance breakdown will appear here.
             </p>
@@ -163,7 +181,7 @@ $failedCount = count(array_filter($history, fn($r) => (float) $r->percentage <= 
 function viewResult(id) {
     $('#mainContent').fadeOut(200, function() {
         $.ajax({
-            url: '/school_app/student/pages/exam_result_view.php',
+            url: 'pages/exam_result_view.php',
             type: 'POST',
             data: { exam_id: id },
             success: function(response) {

@@ -18,7 +18,7 @@ if (!$id || empty($new_password)) {
 }
 
 // Additional protection: Only Admin can reset passwords for anyone
-if ($_SESSION['role'] !== 'admin') {
+if (!in_array($_SESSION['role'], ['admin', 'super'])) {
     echo json_encode(['success' => false, 'message' => 'Unauthorized: Only Admin can reset passwords']);
     exit;
 }

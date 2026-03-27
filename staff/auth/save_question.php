@@ -3,6 +3,7 @@ header('Content-Type: application/json');
 require '../../connections/db.php';
 require '../../auth/check.php';
 
+/** @var object $user */
 if ($user->role !== 'staff') {
     echo json_encode(['success' => false, 'message' => 'Unauthorized']);
     exit;
@@ -98,6 +99,9 @@ if (isset($_FILES['question_image']) && $_FILES['question_image']['error'] === U
         $new_filename = "q_" . $exam_id . "_" . $q_num . "_" . time() . "." . $file_ext;
         if (move_uploaded_file($_FILES['question_image']['tmp_name'], $upload_dir . $new_filename)) {
             $question_image = $new_filename;
+        } else {
+            echo json_encode(['success' => false, 'message' => 'Failed to move uploaded file. Check folder permissions.']);
+            exit;
         }
     }
 }

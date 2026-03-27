@@ -8,6 +8,31 @@ if ($user->role !== 'staff') {
 
 $staff_class = $_SESSION['class'] ?? '';
 
+// Fetch unique classes for this teacher
+$class_stmt = $conn->prepare("
+    SELECT DISTINCT c.id, c.class 
+    FROM class c 
+    WHERE c.teacher_id = :tid 
+    ORDER BY c.class ASC
+");
+$class_stmt->execute([':tid' => $user->id]);
+$assigned_classes = $class_stmt->fetchAll(PDO::FETCH_OBJ);
+$assigned_class_names = array_map(function ($c) {
+    return $c->class;
+}, $assigned_classes);
+
+// Filter by selected class if set
+$selected_class = isset($_GET['filter_class']) ? $_GET['filter_class'] : '';
+
+// Final classes to filter students
+$filter_classes = $selected_class ? [$selected_class] : $assigned_class_names;
+
+// If the teacher has no assigned classes, use an empty array
+if (empty($filter_classes))
+    $filter_classes = ['__NONE__'];
+
+$placeholders = implode(',', array_fill(0, count($filter_classes), '?'));
+
 // Pagination Settings
 $page = isset($_GET['page']) ? (int) $_GET['page'] : 1;
 $limit = 10;
@@ -16,17 +41,14 @@ if ($page < 1)
 $offset = ($page - 1) * $limit;
 
 // Total records for pagination
-$count_stmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE role = 'student' AND class = :class");
-$count_stmt->execute([':class' => $staff_class]);
+$count_stmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE role = 'student' AND class IN ($placeholders)");
+$count_stmt->execute($filter_classes);
 $totalRecords = $count_stmt->fetchColumn();
 $totalPages = ceil($totalRecords / $limit);
 
-// Fetch students in this teacher's class
-$stmt = $conn->prepare("SELECT * FROM users WHERE role = 'student' AND class = :class ORDER BY first_name ASC LIMIT :limit OFFSET :offset");
-$stmt->bindValue(':class', $staff_class, PDO::PARAM_STR);
-$stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
-$stmt->execute();
+// Fetch students
+$stmt = $conn->prepare("SELECT * FROM users WHERE role = 'student' AND class IN ($placeholders) ORDER BY class ASC, first_name ASC LIMIT $limit OFFSET $offset");
+$stmt->execute($filter_classes);
 $students = $stmt->fetchAll(PDO::FETCH_OBJ);
 
 ?>
@@ -40,18 +62,36 @@ $students = $stmt->fetchAll(PDO::FETCH_OBJ);
             </div>
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">My Students</h1>
-                <p class="text-sm text-gray-500">Managing students in Class: <span
-                        class="font-bold text-orange-600"><?= htmlspecialchars($staff_class ?: 'Not Assigned') ?></span>
+                <p class="text-sm text-gray-500">
+                    <?php if ($selected_class): ?>
+                        Managing students in Class: <span class="font-bold text-orange-600"><?= htmlspecialchars($selected_class) ?></span>
+                    <?php else: ?>
+                        All students in your assigned classes: <span
+                            class="font-bold text-orange-600"><?= htmlspecialchars(implode(', ', $assigned_class_names) ?: 'None') ?></span>
+                    <?php endif; ?>
                 </p>
             </div>
         </div>
 
         <div class="flex flex-col md:flex-row items-center gap-3">
+            <!-- Class Filter -->
+            <div class="relative w-full md:w-56 group">
+                <i class="bx bx-filter absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors"></i>
+                <select id="staffClassFilter" 
+                    class="w-full pl-11 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 transition shadow-sm appearance-none cursor-pointer font-semibold text-gray-600">
+                    <option value="">All My Classes</option>
+                    <?php foreach ($assigned_classes as $ac): ?>
+                        <option value="<?= htmlspecialchars($ac->class) ?>" <?= $selected_class === $ac->class ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($ac->class) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
              <div class="relative w-full md:w-64 group">
                 <i class="bx bx-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-orange-500 transition-colors"></i>
                 <input type="text" id="staffStudentSearch" 
                     class="w-full pl-11 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 transition shadow-sm"
-                    placeholder="Search students...">
+                    placeholder="Search students..." value="<?= isset($_GET['search']) ? htmlspecialchars($_GET['search']) : '' ?>">
             </div>
             <button id="staffStudentCSV"
                 class="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-50 transition shadow-sm flex items-center gap-2 cursor-pointer">
@@ -76,7 +116,7 @@ $students = $stmt->fetchAll(PDO::FETCH_OBJ);
                 <tbody id="staffStudentTableBody" class="divide-y divide-gray-50">
                     <?php if (count($students) > 0): ?>
                         <?php foreach ($students as $student):
-                            $initials = strtoupper(substr($student->first_name, 0, 1) . substr($student->last_name, 0, 1));
+                            $initials = strtoupper(substr($student->first_name, 0, 1) . substr($student->surname, 0, 1));
                             $colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500', 'bg-indigo-500'];
                             $randomColor = $colors[array_rand($colors)];
                             ?>
@@ -84,7 +124,7 @@ $students = $stmt->fetchAll(PDO::FETCH_OBJ);
                                 <td class="px-6 py-4">
                                     <div class="flex items-center gap-3">
                                         <?php if (!empty($student->profile_photo)): ?>
-                                            <img src="/school_app/uploads/profile_photos/<?= $student->profile_photo ?>"
+                                                                    <img src="<?= $base ?>uploads/profile_photos/<?= $student->profile_photo ?>"
                                                 class="w-10 h-10 rounded-full object-cover shadow-sm ring-2 ring-white">
                                         <?php else: ?>
                                             <div
@@ -94,7 +134,7 @@ $students = $stmt->fetchAll(PDO::FETCH_OBJ);
                                         <?php endif; ?>
                                         <div>
                                             <p class="text-sm font-bold text-gray-800">
-                                                <?= htmlspecialchars($student->first_name . ' ' . $student->last_name) ?></p>
+                                                <?= htmlspecialchars($student->first_name . ' ' . $student->surname) ?></p>
                                             <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-tight">
                                                 <?= htmlspecialchars($student->class) ?></p>
                                         </div>
@@ -198,10 +238,22 @@ $students = $stmt->fetchAll(PDO::FETCH_OBJ);
         csvName: 'my_students'
     });
 
+    // Handle class filter
+    $("#staffClassFilter").on("change", function() {
+        const val = $(this).val();
+        const url = "pages/students.php?filter_class=" + encodeURIComponent(val);
+        if (typeof loadPage === "function") {
+            loadPage(url);
+        } else {
+            $("#mainContent").load(url);
+        }
+    });
+
     // Handle pagination clicks without reloading the whole page browser-wise
     $(".staff-student-pagination-btn").off("click").on("click", function () {
         const page = $(this).data("page");
-        const url = "/school_app/staff/pages/students.php?page=" + page;
+        const selectedClass = "<?= htmlspecialchars($selected_class) ?>";
+        const url = "pages/students.php?page=" + page + (selectedClass ? "&filter_class=" + encodeURIComponent(selectedClass) : "");
 
         // Use the global loadPage function if available, or manually load
         if (typeof loadPage === "function") {

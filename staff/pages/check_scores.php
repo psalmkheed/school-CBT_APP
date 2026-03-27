@@ -1,6 +1,6 @@
 <?php
 require __DIR__ . '/../../auth/check.php';
-
+/** @var stdClass|false $user */
 // Only staff can access this page
 if ($user->role !== 'staff') {
     exit('Unauthorized');
@@ -14,7 +14,7 @@ if (!$exam_id) {
 }
 
 // Fetch exam details
-$staff_fullname = $_SESSION['first_name'] . ' ' . $_SESSION['last_name'];
+$staff_fullname = $_SESSION['first_name'] . ' ' . $_SESSION['surname'];
 $stmt = $conn->prepare("SELECT * FROM exams WHERE id = :id AND subject_teacher = :teacher");
 $stmt->execute([':id' => $exam_id, ':teacher' => $staff_fullname]);
 $exam = $stmt->fetch(PDO::FETCH_OBJ);
@@ -28,7 +28,7 @@ if (!$exam) {
 $stmt = $conn->prepare("
     SELECT 
         u.first_name,
-        u.last_name,
+        u.surname,
         u.class,
         r.score,
         r.total_questions,
@@ -53,7 +53,7 @@ $results = $stmt->fetchAll(PDO::FETCH_OBJ);
                 <i class="bx bx-arrow-left-stroke text-4xl"></i>
             </button>
             <div>
-                <h1 class="text-3xl font-black text-gray-800 tracking-tight"><?= htmlspecialchars($exam->subject) ?>
+                <h1 class="text-3xl font-semibold text-gray-800 tracking-tight"><?= htmlspecialchars($exam->subject) ?>
                     Results</h1>
                 <p class="text-sm text-gray-400 font-medium tracking-tight uppercase">
                     <?= htmlspecialchars($exam->exam_type) ?> • Class: <?= htmlspecialchars($exam->class) ?></p>
@@ -68,11 +68,11 @@ $results = $stmt->fetchAll(PDO::FETCH_OBJ);
                     placeholder="Search results...">
             </div>
             <button id="scoreCSV"
-                class="px-6 py-3 bg-blue-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 transition shadow-xl shadow-blue-100 flex items-center gap-2 cursor-pointer no-print">
-                <i class="bx bx-cloud-download text-lg"></i> CSV
+                class="px-6 py-3 bg-blue-600 text-white rounded-2xl text-xs font-semibold uppercase tracking-widest hover:bg-blue-700 transition shadow-xl shadow-blue-100 flex items-center gap-2 cursor-pointer no-print">
+                <i class="bx bx-arrow-big-down-line text-lg"></i> CSV
             </button>
             <button onclick="window.print()"
-                class="px-8 py-3 bg-gray-800 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-black transition shadow-xl shadow-gray-200 flex items-center gap-2 cursor-pointer no-print">
+                class="px-8 py-3 bg-gray-800 text-white rounded-2xl text-xs font-semibold uppercase tracking-widest hover:bg-black transition shadow-xl shadow-gray-200 flex items-center gap-2 cursor-pointer no-print">
                 <i class="bx bx-printer text-lg"></i> Print
             </button>
         </div>
@@ -85,8 +85,8 @@ $results = $stmt->fetchAll(PDO::FETCH_OBJ);
                 <i class="bx bx-group text-2xl"></i>
             </div>
             <div>
-                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Students</p>
-                <p class="text-xl font-black text-gray-800 tabular-nums"><?= count($results) ?></p>
+                <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Students</p>
+                <p class="text-xl font-semibold text-gray-800 tabular-nums"><?= count($results) ?></p>
             </div>
         </div>
         <div class="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-4">
@@ -94,11 +94,11 @@ $results = $stmt->fetchAll(PDO::FETCH_OBJ);
                 <i class="bx bx-check-circle text-2xl"></i>
             </div>
             <div>
-                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Average</p>
+                <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Average</p>
                 <?php
                 $avg = count($results) > 0 ? array_sum(array_column($results, 'percentage')) / count($results) : 0;
                 ?>
-                <p class="text-xl font-black text-gray-800 tabular-nums"><?= round($avg) ?>%</p>
+                <p class="text-xl font-semibold text-gray-800 tabular-nums"><?= round($avg) ?>%</p>
             </div>
         </div>
         <div class="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-sm flex items-center gap-4">
@@ -106,11 +106,11 @@ $results = $stmt->fetchAll(PDO::FETCH_OBJ);
                 <i class="bx bx-medal text-2xl"></i>
             </div>
             <div>
-                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Top Score</p>
+                <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest">Top Score</p>
                 <?php
                 $top = count($results) > 0 ? max(array_column($results, 'percentage')) : 0;
                 ?>
-                <p class="text-xl font-black text-gray-800 tabular-nums"><?= round($top) ?>%</p>
+                <p class="text-xl font-semibold text-gray-800 tabular-nums"><?= round($top) ?>%</p>
             </div>
         </div>
     </div>
@@ -122,14 +122,14 @@ $results = $stmt->fetchAll(PDO::FETCH_OBJ);
             <table id="scoreTable" class="w-full text-left border-collapse">
                 <thead>
                     <tr>
-                        <th class="px-8 py-10 text-[11px] font-black text-gray-400 uppercase tracking-widest">Rank</th>
-                        <th class="px-6 py-10 text-[11px] font-black text-gray-400 uppercase tracking-widest">Student
+                        <th class="px-8 py-10 text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Rank</th>
+                        <th class="px-6 py-10 text-[11px] font-semibold text-gray-400 uppercase tracking-widest">Student
                             Information</th>
                         <th
-                            class="px-6 py-10 text-[11px] font-black text-gray-400 uppercase tracking-widest text-center">
+                            class="px-6 py-10 text-[11px] font-semibold text-gray-400 uppercase tracking-widest text-center">
                             Score Detail</th>
                         <th
-                            class="px-6 py-10 text-[11px] font-black text-gray-400 uppercase tracking-widest text-right">
+                            class="px-6 py-10 text-[11px] font-semibold text-gray-400 uppercase tracking-widest text-right">
                             Performance Status</th>
                     </tr>
                 </thead>
@@ -143,21 +143,21 @@ $results = $stmt->fetchAll(PDO::FETCH_OBJ);
                             <tr class="hover:bg-gray-50/50 transition-all group">
                                 <td class="px-8 py-8">
                                     <div
-                                        class="size-10 rounded-xl bg-gray-50 flex items-center justify-center font-black text-sm text-gray-400 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
+                                        class="size-10 rounded-xl bg-gray-50 flex items-center justify-center font-semibold text-sm text-gray-400 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
                                         <?= $index + 1 ?>
                                     </div>
                                 </td>
                                 <td class="px-6 py-8">
                                     <div class="flex flex-col">
                                         <span
-                                            class="text-base font-black text-gray-800"><?= htmlspecialchars($item->first_name . ' ' . $item->last_name) ?></span>
+                                            class="text-base font-semibold text-gray-800"><?= htmlspecialchars($item->first_name . ' ' . $item->surname) ?></span>
                                         <span
                                             class="text-[10px] font-bold text-gray-400 uppercase tracking-tight"><?= htmlspecialchars($item->class) ?></span>
                                     </div>
                                 </td>
                                 <td class="px-6 py-8">
                                     <div class="flex flex-col items-center gap-2">
-                                        <span class="text-lg font-black text-gray-800 tabular-nums"><?= $item->score ?> <span
+                                        <span class="text-lg font-semibold text-gray-800 tabular-nums"><?= $item->score ?> <span
                                                 class="text-gray-300 font-bold">/ <?= $item->total_questions ?></span></span>
                                         <div class="w-32 bg-gray-50 rounded-full h-2 overflow-hidden border border-gray-100">
                                             <div class="h-full bg-<?= $color ?>-500 shadow-[0_0_10px_rgba(var(--tw-color-<?= $color ?>-500),0.3)]"
@@ -169,8 +169,8 @@ $results = $stmt->fetchAll(PDO::FETCH_OBJ);
                                     <div
                                         class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-<?= $color ?>-50 border border-<?= $color ?>-100 text-<?= $color ?>-600">
                                         <span
-                                            class="text-[11px] font-black uppercase tracking-widest"><?= $hasPassed ? 'Passed' : 'Failed' ?></span>
-                                        <span class="text-sm font-black tabular-nums"><?= round($percent) ?>%</span>
+                                            class="text-[11px] font-semibold uppercase tracking-widest"><?= $hasPassed ? 'Passed' : 'Failed' ?></span>
+                                        <span class="text-sm font-semibold tabular-nums"><?= round($percent) ?>%</span>
                                     </div>
                                 </td>
                             </tr>

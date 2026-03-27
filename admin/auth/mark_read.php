@@ -28,14 +28,23 @@ $id = (int) $id;
 
 try {
       // Only mark notifications that belong to logged-in user
-      $stmt = $conn->prepare("
-          UPDATE broadcast 
-          SET is_read = 1 
-          WHERE id = :id AND recipient = :recipient
-      ");
+      if (in_array($_SESSION['role'], ['admin', 'super'])) {
+            $stmt = $conn->prepare("
+                UPDATE broadcast 
+                SET is_read = 1 
+                WHERE id = :id AND (recipient = :recipient OR recipient = 'ADMIN_SUPPORT')
+            ");
+      } else {
+            $stmt = $conn->prepare("
+                UPDATE broadcast 
+                SET is_read = 1 
+                WHERE id = :id AND recipient = :recipient
+            ");
+      }
+
       $success = $stmt->execute([
             ':id' => $id,
-            ':recipient' => $_SESSION['username']
+            ':recipient' => $_SESSION['username'] ?? ''
       ]);
       
       // Check if any row was actually updated

@@ -1,37 +1,99 @@
 <?php
 require '../../connections/db.php';
 require '../../auth/check.php';
-
+/** @var stdClass|false $user */
 if ($user->role !== 'staff') {
     die("Unauthorized");
 }
 
-$teacher_name = $user->first_name . ' ' . $user->last_name;
+$teacher_name = $user->first_name . ' ' . $user->surname;
+
+// Fetch unique classes for this teacher
+$class_stmt = $conn->prepare("
+    SELECT DISTINCT c.id, c.class 
+    FROM teacher_assignments ta 
+    JOIN class c ON ta.class_id = c.id 
+    WHERE ta.teacher_id = :tid 
+    ORDER BY c.class ASC
+");
+$class_stmt->execute([':tid' => $user->id]);
+$assigned_classes = $class_stmt->fetchAll(PDO::FETCH_OBJ);
+
+// Filter by class if set
+$selected_class = $_GET['filter_class'] ?? '';
+$class_filter_sql = $selected_class ? " AND e.class = :class " : " AND e.class IN (
+    SELECT c.class 
+    FROM teacher_assignments ta 
+    JOIN class c ON ta.class_id = c.id 
+    WHERE ta.teacher_id = :tid
+) ";
+
+$session = $_SESSION['active_session'] ?? '';
+$term = $_SESSION['active_term'] ?? '';
 
 $stmt = $conn->prepare("
     SELECT e.*, 
     (SELECT COUNT(*) FROM questions q WHERE q.exam_id = e.id) as questions_set
     FROM exams e 
-    WHERE e.subject_teacher = :teacher 
+    WHERE e.subject_teacher = :teacher AND e.session = :session AND e.term = :term $class_filter_sql
     ORDER BY e.id DESC
 ");
-$stmt->execute([':teacher' => $teacher_name]);
+
+$params = [
+    ':teacher' => $teacher_name,
+    ':session' => $session,
+    ':term' => $term
+];
+
+if ($selected_class) {
+    $params[':class'] = $selected_class;
+} else {
+    $params[':tid'] = $user->id;
+}
+
+$stmt->execute($params);
 $exams = $stmt->fetchAll(PDO::FETCH_OBJ);
 ?>
 
 <div class="fadeIn w-full md:p-8 p-4">
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <div class="flex flex-col md:flex-row items-center gap-4">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-8">
+        <div class="flex items-center gap-4">
+            <div class="p-3 rounded-2xl bg-blue-100 text-blue-600 shadow-sm">
+                <i class="bx-book-open text-3xl"></i>
+            </div>
             <div>
                 <h3 class="text-2xl font-bold text-gray-800">Exam Management</h3>
-                <p class="text-sm text-gray-500">Manage questions for your assigned exams.</p>
-            </div>
-            <div class="relative w-full md:w-64 group">
-                <i class="bx bx-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
-                <input type="text" id="examSearch" 
-                    class="w-full pl-11 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm"
-                    placeholder="Search exams...">
-            </div>
+                <p class="text-sm text-gray-500">
+                    <?php if ($selected_class): ?>
+                        Viewing exams for Class: <span class="font-bold text-blue-600"><?= htmlspecialchars($selected_class) ?></span>
+                    <?php else: ?>
+                        Manage questions for all your assigned exams.
+                    <?php endif; ?>
+                </p>
+                </div>
+                </div>
+                <div class="flex flex-col md:flex-row items-center gap-3 w-full md:w-auto">
+                    <!-- Class Filter -->
+                    <div class="relative w-full md:w-56 group">
+                        <i
+                            class="bx bx-filter absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
+                        <select id="examClassFilter"
+                            class="w-full pl-11 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm appearance-none cursor-pointer font-semibold text-gray-600">
+                            <option value="">All My Classes</option>
+                            <?php foreach ($assigned_classes as $ac): ?>
+                                <option value="<?= htmlspecialchars($ac->class) ?>" <?= $selected_class === $ac->class ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($ac->class) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                <div class="relative w-full md:w-64 group">
+                    <i class="bx bx-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors"></i>
+                    <input type="text" id="examSearch" 
+                        class="w-full pl-11 pr-4 py-2 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition shadow-sm"
+                        placeholder="Search exams...">
+                </div>
         </div>
     </div>
 
@@ -51,7 +113,7 @@ $exams = $stmt->fetchAll(PDO::FETCH_OBJ);
                             </span>
                         </div>
 
-                        <h4 class="text-xl font-black text-gray-800 mb-1"><?= htmlspecialchars($exam->subject) ?></h4>
+                        <h4 class="text-xl font-semibold text-gray-800 mb-1"><?= htmlspecialchars($exam->subject) ?></h4>
                         <p class="text-sm text-gray-400 mb-4"><?= htmlspecialchars($exam->class) ?> • <?= htmlspecialchars($exam->exam_type) ?></p>
                         
                         <div class="flex items-center gap-4 mb-6">
@@ -111,6 +173,16 @@ $exams = $stmt->fetchAll(PDO::FETCH_OBJ);
 </div>
 
 <script>
+$('#examClassFilter').on('change', function() {
+    const val = $(this).val();
+    const url = "pages/exams.php?filter_class=" + encodeURIComponent(val);
+    if (typeof loadPage === "function") {
+        loadPage(url);
+    } else {
+        $("#mainContent").load(url);
+    }
+});
+
 $('#examSearch').on('input', function() {
     const q = $(this).val().toLowerCase();
     $('.grid > div').each(function() {
@@ -120,14 +192,14 @@ $('#examSearch').on('input', function() {
 });
 
 function loadSetQuestions(examId) {
-    $("#mainContent").load("/school_app/staff/pages/set_questions.php", { exam_id: examId });
+    $("#mainContent").load("pages/set_questions.php", { exam_id: examId });
 }
 
 function previewExam(examId) {
-    $("#mainContent").load("/school_app/staff/pages/preview_exam.php", { exam_id: examId });
+    $("#mainContent").load("pages/preview_exam.php", { exam_id: examId });
 }
 
 function checkScores(examId) {
-    $("#mainContent").load("/school_app/staff/pages/check_scores.php", { exam_id: examId });
+    $("#mainContent").load("pages/check_scores.php", { exam_id: examId });
 }
 </script>

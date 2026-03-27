@@ -2,7 +2,7 @@
 require '../../connections/db.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: /school_app/auth/login.php");
+    header("Location: {$base}auth/login.php");
     exit();
 }
 
@@ -13,7 +13,7 @@ $user = $stmt->fetch(PDO::FETCH_OBJ);
 
 if (!$user) {
     session_destroy();
-    header("Location: /school_app/auth/login.php");
+    header("Location: {$base}auth/login.php");
     exit();
 }
 

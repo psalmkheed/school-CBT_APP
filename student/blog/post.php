@@ -22,7 +22,7 @@ if (isset($_GET['post_id'])) {
 
 } else {
       echo '<div class="relative flex items-center justify-center fixed h-screen w-full bg-black z-[99999]">
-      <h1 class="absolute text-[10rem] text-gray-900 font-black">401</h1>
+      <h1 class="absolute text-[10rem] text-gray-900 font-semibold">401</h1>
       <h1 class="animate-pulse text-3xl text-white font-bold"> Unauthorized Access </h1>
       
       
@@ -33,7 +33,7 @@ if (isset($_GET['post_id'])) {
 ?>
       <div class="relative">
             <header class="masthead rounded-br-md rounded-bl-md"
-                  style="background-image: url('/school_app/uploads/blogs/<?= $post->blog_image ?>'); background-size:cover">
+                  style="background-image: url('<?= $base ?>uploads/blogs/<?= $post->blog_image ?>'); background-size:cover">
             </header>
             <div class="absolute top-4 left-4 md:top-6 md:left-6 z-50">
                   <button onclick="goHome()"

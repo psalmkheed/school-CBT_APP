@@ -1,9 +1,7 @@
 <?php
 
 require __DIR__ . '/connections/db.php';
-$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-DEFINE("APP_URL", $scheme . '://' . $_SERVER['HTTP_HOST'] . '/school_app/');
-
+// APP_URL is already defined in connections/db.php
 $base = APP_URL;
 
 
@@ -13,7 +11,7 @@ $check_config = $conn->prepare('SELECT * FROM school_config');
 $check_config->execute();
 
 if ($check_config->rowCount() > 0) {
-      header("Location: /school_app/auth/splash.php");
+      header("Location: {$base}auth/splash.php");
       exit();
 }
 ;
@@ -121,7 +119,7 @@ $dev_name = '<p class="absolute bottom-0 left-0 right-0 text-center text-sm text
                   let formData = new FormData(this);
 
                   $.ajax({
-                        url: '/school_app/auth/school_config.php',
+                        url: 'auth/school_config.php',
                         type: 'POST',
                         data: formData,
                         dataType: 'json',
@@ -135,7 +133,7 @@ $dev_name = '<p class="absolute bottom-0 left-0 right-0 text-center text-sm text
                                     showAlert('success', res.message);
                                     $('#configForm')[0].reset();
 
-                                    window.location.href = '/school_app/auth/login.php';
+                                    window.location.href = APP_URL + 'auth/login.php';
                               } else {
                                     showAlert('error', res.message)
                               }

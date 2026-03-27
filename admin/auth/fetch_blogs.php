@@ -2,7 +2,7 @@
 session_start();
 require '../../connections/db.php';
 
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['admin', 'super'])) {
     exit;
 }
 
@@ -17,7 +17,7 @@ if (count($blogs) === 0) {
 
 foreach ($blogs as $item) {
     $date = date('M j, Y • g:i A', strtotime($item['posted_at']));
-    $imagePath = !empty($item['blog_image']) ? '/school_app/uploads/blogs/' . htmlspecialchars($item['blog_image']) : '/school_app/src/img/placeholder.jpg';
+    $imagePath = !empty($item['blog_image']) ? $base . 'uploads/blogs/' . htmlspecialchars($item['blog_image']) : $base . 'src/img/placeholder.jpg';
     
     echo '<tr class="hover:bg-gray-50/50 transition-colors border-b border-gray-50/50 group">';
     echo '<td class="px-6 py-4">';

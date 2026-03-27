@@ -2,6 +2,7 @@
 // Determine Role-based action button
 $actionBtn = match($_SESSION['role']) {
     'admin'   => ['icon' => 'bx-user-plus', 'id' => 'createAccount', 'color' => 'bg-green-600'],
+    'super' => ['icon' => 'bx-user-plus', 'id' => 'createAccount', 'color' => 'bg-green-600'],
     'staff'   => ['icon' => 'bx-pencil', 'id' => 'sideStaffExams', 'color' => 'bg-sky-600'],
     'student' => ['icon' => 'bx-book-open', 'id' => 'sideTest', 'color' => 'bg-blue-600'],
     default   => ['icon' => 'bx-plus', 'id' => 'homepage', 'color' => 'bg-gray-600']
@@ -57,7 +58,7 @@ $themeClass = match($_SESSION['role']) {
             </button>
         </div>
 
-        <!-- News/Blog -->
+        <!-- News/History -->
         <button onclick="$('#<?= $newsBtn['id'] ?>').first().click()"
             class="bn-btn flex flex-col items-center gap-1 group active:scale-95 transition-all" id="bn-news">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center group-hover:bg-gray-50 transition-colors">
@@ -66,8 +67,8 @@ $themeClass = match($_SESSION['role']) {
             </div>
         </button>
 
-        <!-- Profile -->
-        <button onclick="$('#profile, #sideProfile').first().click()" class="bn-btn flex flex-col items-center gap-1 group active:scale-95 transition-all" id="bn-profile">
+        <!-- Profile / Logout Toggle -->
+        <button onclick="$('#dropDownMenu').click()" class="bn-btn flex flex-col items-center gap-1 group active:scale-95 transition-all" id="bn-profile">
             <div class="w-10 h-10 rounded-xl flex items-center justify-center group-hover:bg-gray-50 transition-colors overflow-hidden">
                  <i class="bx bx-user-circle text-2xl text-gray-400 bn-icon" data-solid="bxs-user-circle" data-regular="bx-user-circle"></i>
             </div>

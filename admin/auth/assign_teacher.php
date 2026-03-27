@@ -3,7 +3,7 @@ require '../../auth/check.php';
 header('Content-Type: application/json');
 
 // Security Check: Only admins can assign teachers
-if ($user->role !== 'admin') {
+if (!in_array($user->role, ['admin', 'super'])) {
     echo json_encode(['success' => false, 'message' => 'Unauthorized access.']);
     exit;
 }

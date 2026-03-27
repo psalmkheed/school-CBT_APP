@@ -57,10 +57,12 @@ try {
 
     $percentage = ($total_questions > 0) ? ($score / $total_questions) * 100 : 0;
 
+    $time_taken = isset($_POST['time_taken']) ? (int)$_POST['time_taken'] : 0;
+
     // Save result
     $insert_stmt = $conn->prepare("
-        INSERT INTO exam_results (exam_id, user_id, score, total_questions, percentage, student_answers, taken_at) 
-        VALUES (:exam_id, :user_id, :score, :total, :percent, :answers, NOW())
+        INSERT INTO exam_results (exam_id, user_id, score, total_questions, percentage, student_answers, time_taken, taken_at) 
+        VALUES (:exam_id, :user_id, :score, :total, :percent, :answers, :time, NOW())
     ");
     
     $insert_stmt->execute([
@@ -69,7 +71,8 @@ try {
         ':score' => $score,
         ':total' => $total_questions,
         ':percent' => $percentage,
-        ':answers' => $answers_json
+        ':answers' => $answers_json,
+        ':time' => $time_taken
     ]);
 
     recordActivity($conn, 'EXAM_SUBMIT', "Student submitted Exam ID: $exam_id (Score: $score/$total_questions)");

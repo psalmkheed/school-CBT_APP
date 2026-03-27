@@ -61,7 +61,8 @@ if ($fileError !== 0) {
 }
 
 /* Rename file to avoid duplicates */
-$newName = uniqid('school_logo', true) . '.' . $ext;
+$newName = uniqid('school_logo_', true) . '.' . $ext;
+$dbPath = '/uploads/school_logo/' . $newName;
 $destination = $uploadDir . $newName;
 
 if (!move_uploaded_file($tmpName, $destination)) {
@@ -72,7 +73,7 @@ if (!move_uploaded_file($tmpName, $destination)) {
 /* Save to database */
 $stmt = $conn->prepare("INSERT INTO school_config (school_logo, school_name, school_tagline, school_primary, school_secondary) VALUES (?, ?, ?, ?, ?)");
 $stmt->execute([
-      $newName, 
+      $dbPath, 
       $school_name, 
       $school_tagline, 
       $school_primary_color, 

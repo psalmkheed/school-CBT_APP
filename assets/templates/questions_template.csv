@@ -1,0 +1,4 @@
+question_number,question_text,option_a,option_b,option_c,option_d,correct_answer,question_type
+1,What is 5 + 5?,8,9,10,11,C,mcq
+2,Who is the first president of Nigeria?,Buhari,Azikiwe,Jonathan,Obasanjo,B,mcq
+3,Fill in the blank: The capital of France is ____.,Berlin,Madrid,Paris,Rome,C,mcq

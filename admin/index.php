@@ -9,14 +9,14 @@ $check_config->execute();
 if ($check_config->rowCount() < 1) {
       session_unset();
       session_destroy();
-      header("Location: /school_app/index.php");
+      header("Location: {$base}index.php");
 }
 ;
 // -------------------------------------------------------------//
 
 // Only admins can access this page
-if ($user->role !== 'admin') {
-      header("Location: /school_app/auth/login.php");
+if (!in_array($user->role, ['admin', 'super'])) {
+      header("Location: {$base}auth/login.php");
       exit();
 }
 
@@ -33,8 +33,22 @@ $stmt->execute([
 $results = $stmt->fetchAll(PDO::FETCH_OBJ);
 
 // Core Counts
+$active_session = $_SESSION['active_session'] ?? '';
+$active_term = $_SESSION['active_term'] ?? '';
+
 $count_student_result = $conn->query("SELECT COUNT(*) FROM users WHERE role = 'student'")->fetchColumn() ?: 0;
 $count_staff_result = $conn->query("SELECT COUNT(*) FROM users WHERE role = 'staff'")->fetchColumn() ?: 0;
+
+$count_exams_stmt = $conn->prepare("SELECT COUNT(*) FROM exams WHERE session = :session AND term = :term");
+$count_exams_stmt->execute([':session' => $active_session, ':term' => $active_term]);
+$count_exams_result = $count_exams_stmt->fetchColumn() ?: 0;
+
+$today = date('Y-m-d');
+$global_att_stmt = $conn->prepare("SELECT COUNT(*) as total, SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) as present FROM attendance WHERE attendance_date = :today");
+$global_att_stmt->execute([':today' => $today]);
+$global_att = $global_att_stmt->fetch(PDO::FETCH_OBJ);
+$today_present = (int) ($global_att->present ?? 0);
+$today_total = (int) ($global_att->total ?? 0);
 
 // Get Active Session/Term dates for calculations
 $active_session_query = $conn->prepare("SELECT session_start_date, session_end_date FROM sch_session WHERE status = 1 LIMIT 1");
@@ -123,7 +137,7 @@ $all_staff = $teacher_populate->fetchAll(PDO::FETCH_OBJ);
       <?php require '../components/navbar.php'; ?>
 
       <!-- Main Content -->
-      <div class="flex w-full" id="mainContent">
+      <div class="flex flex-col w-full" id="mainContent">
             <div class="fadeIn w-full md:p-8 p-4">
                   <!-- Welcome Banner -->
                   <div
@@ -177,8 +191,35 @@ $all_staff = $teacher_populate->fetchAll(PDO::FETCH_OBJ);
                         </div>
                   </div>
 
+                  <!-- Quick Announcement Section -->
+                  <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 mb-6">
+                        <div class="flex items-center gap-3 mb-4">
+                              <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
+                                    <i class="bx bx-megaphone text-xl"></i>
+                              </div>
+                              <div>
+                                    <h4 class="text-sm font-bold text-gray-800">Quick Announcement</h4>
+                                    <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">Broadcast to all students & staff</p>
+                              </div>
+                        </div>
+                        <form id="quickAnnouncementForm" method="POST" class="flex flex-col md:flex-row gap-3">
+                              <input type="text" name="title" required
+                                    class="flex-1 bg-gray-50 border border-transparent rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:bg-white transition-all shadow-sm"
+                                    placeholder="Announcement Title (e.g. Mid-term Break Notice)">
+                              <input type="hidden" name="type" value="warning">
+                              <input type="hidden" name="recipient" value="all">
+                              <textarea name="message" required
+                                    class="flex-[2] bg-gray-50 border border-transparent rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:bg-white transition-all shadow-sm resize-none"
+                                    rows="1" placeholder="Type your message here..."></textarea>
+                              <button type="submit"
+                                    class="px-8 py-2.5 bg-orange-600 text-white rounded-xl font-bold text-sm hover:bg-orange-700 transition-all shadow-lg shadow-orange-100 flex items-center justify-center gap-2 cursor-pointer">
+                                    <i class="bx bx-send text-lg"></i> Post
+                              </button>
+                        </form>
+                  </div>
+
                   <!-- Stats Cards -->
-                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-6">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-6">
 
                         <!-- Students Card -->
                         <div
@@ -244,11 +285,46 @@ $all_staff = $teacher_populate->fetchAll(PDO::FETCH_OBJ);
                               <div>
                                     <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Total Users
                                     </p>
-                                    <h3 class="text-3xl md:text-4xl font-extrabold text-gray-800 leading-tight">
+                                    <h3 class="text-3xl md:text-3xl font-extrabold text-gray-800 leading-tight">
                                           <?= ($count_student_result ?: 0) + ($count_staff_result ?: 0) ?>
                                     </h3>
                               </div>
                         </div>
+
+                        <!-- Exams Card -->
+                        <div
+                              class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4 group hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">
+                              <div
+                                    class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-200 flex-shrink-0">
+                                    <i class="bx-whiteboard text-2xl text-white"></i>
+                              </div>
+                              <div>
+                                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Exams Created
+                                    </p>
+                                    <h3 class="text-3xl md:text-3xl font-extrabold text-gray-800 leading-tight">
+                  <?= $count_exams_result ?: 0 ?>
+            </h3>
+      </div>
+</div>
+
+<!-- Attendance Card -->
+<div
+      class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 flex items-center gap-4 group hover:shadow-md transition-all duration-300 hover:-translate-y-0.5">
+      <div
+            class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-200 flex-shrink-0">
+            <i class="bx bx-calendar-check text-2xl text-white"></i>
+      </div>
+      <div>
+            <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Present Today
+            </p>
+            <h3 class="text-3xl md:text-3xl font-extrabold text-gray-800 leading-tight">
+                  <?= $today_present ?>
+            </h3>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                  <?= $today_total > 0 ? round(($today_present / $today_total) * 100) : 0 ?>% Rate
+            </p>
+      </div>
+</div>
                   </div>
 
                   <!-- Charts & Support Row -->
@@ -505,9 +581,9 @@ $all_staff = $teacher_populate->fetchAll(PDO::FETCH_OBJ);
                   id="greetingMsgContainer">
                   <!-- close button -->
                   <button type="button"
-                        class="bg-red-500 hover:bg-red-600 transition cursor-pointer flex items-center justify-center rounded-full p-1.5 hover:shadow-md top-4 right-4 absolute"
-                        onclick="document.getElementById('greetingsModal').classList.add('hidden')">
-                        <i class="bx-x text-2xl text-white"></i>
+                        class="bg-red-500 hover:bg-red-600 transition cursor-pointer flex items-center justify-center rounded-full p-1.5 hover:shadow-md top-4 right-4 absolute z-50"
+                        onclick="enterAppMode(); document.getElementById('greetingsModal').style.display='none'; document.getElementById('greetingsModal').classList.add('hidden')">
+                        <i class="bx bx-x text-2xl text-white"></i>
                   </button>
                   <!-- msg box -->
                   <div class="flex flex-col gap-4">
@@ -656,7 +732,7 @@ $all_staff = $teacher_populate->fetchAll(PDO::FETCH_OBJ);
 
             const btn = document.getElementById('sendReplyBtn');
             btn.disabled = true;
-            btn.innerHTML = '<i class="bx bx-loader-alt animate-spin text-xl"></i>';
+            btn.innerHTML = '<i class="bx bxs-loader-dots animate-spin text-xl"></i>';
 
             $.ajax({
                   url: 'auth/broadcastAuth.php',
@@ -708,11 +784,44 @@ $all_staff = $teacher_populate->fetchAll(PDO::FETCH_OBJ);
 
       document.addEventListener('DOMContentLoaded', () => {
             if(typeof window.initGrowthChart === 'function') window.initGrowthChart();
+
+            // Quick Announcement Logic
+            $(document).on('submit', '#quickAnnouncementForm', function(e) {
+                  e.preventDefault();
+                  const btn = $(this).find('button');
+                  const originalHtml = btn.html();
+                  
+                  btn.prop('disabled', true).html('<i class="bx bxs-loader-dots animate-spin text-lg"></i> Sending...');
+
+                  $.ajax({
+                        url: 'auth/announcement_api.php?action=create',
+                        type: 'POST',
+                        data: $(this).serialize(),
+                        success: function(res) {
+                              try {
+                                    if(res.status === 'success') {
+                                          Swal.fire('Success', 'Announcement posted successfully!', 'success');
+                                          $('#quickAnnouncementForm')[0].reset();
+                                    } else {
+                                          Swal.fire('Error', res.message || 'Failed to post', 'error');
+                                    }
+                              } catch(e) {
+                                    console.error(e, res);
+                                    Swal.fire('Error', 'Unexpected response from server', 'error');
+                              }
+                        },
+                        error: function() {
+                              Swal.fire('Error', 'Network error. Please try again.', 'error');
+                        },
+                        complete: function() {
+                              btn.prop('disabled', false).html(originalHtml);
+                        }
+                  });
+            });
       });
 </script>
-<?php require 'components/footer.php'; ?>
-
 <?php require '../components/notification.php'; ?>
+<?php require 'components/footer.php'; ?>
 
 <script>
 

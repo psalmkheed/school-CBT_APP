@@ -2,17 +2,25 @@
 require_once __DIR__ . '/../connections/db.php';
 require_once __DIR__ . '/../auth/check.php';
 
-// Fetch published exams for the student's class
+// Fetch published exams for the student's class scoped to the active session/term
+$active_session = $_SESSION['active_session'] ?? '';
+$active_term    = $_SESSION['active_term']    ?? '';
+
 $stmt = $conn->prepare("
     SELECT e.*, 
            (SELECT COUNT(*) FROM exam_results r WHERE r.exam_id = e.id AND r.user_id = :user_id) as taken_count
     FROM exams e
-    WHERE e.class = :class AND e.exam_status = 'published'
+    WHERE e.class = :class 
+      AND e.exam_status = 'published'
+      AND e.session = :session
+      AND e.term = :term
     ORDER BY e.id DESC
 ");
 $stmt->execute([
-    ':class' => $user->class,
-    ':user_id' => $user->id
+    ':class'   => $user->class,
+    ':user_id' => $user->id,
+    ':session' => $active_session,
+    ':term'    => $active_term,
 ]);
 $exams = $stmt->fetchAll(PDO::FETCH_OBJ);
 ?>
@@ -34,6 +42,12 @@ $exams = $stmt->fetchAll(PDO::FETCH_OBJ);
         <?php if (count($exams) > 0): ?>
                 <?php foreach ($exams as $exam):
                     $isTaken = $exam->taken_count > 0;
+                    $isExpired = false;
+                    if (!empty($exam->due_date)) {
+                        if (strtotime($exam->due_date) < time()) {
+                            $isExpired = true;
+                        }
+                    }
                     ?>
                     <div
                         class="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500 overflow-hidden group relative">
@@ -51,13 +65,16 @@ $exams = $stmt->fetchAll(PDO::FETCH_OBJ);
                                 <?php if ($isTaken): ?>
                                     <span
                                         class="px-3 py-1 bg-green-100 text-green-700 rounded-full text-[10px] font-bold uppercase tracking-wider">Completed</span>
+                                <?php elseif ($isExpired): ?>
+                                    <span
+                                        class="px-3 py-1 bg-red-100 text-red-700 rounded-full text-[10px] font-bold uppercase tracking-wider">Expired</span>
                                 <?php else: ?>
                                     <span
                                         class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-[10px] font-bold uppercase tracking-wider">Pending</span>
                                 <?php endif; ?>
                             </div>
         
-                            <h4 class="text-xl font-black text-gray-800 mb-1 group-hover:text-green-600 transition-colors">
+                            <h4 class="text-xl font-semibold text-gray-800 mb-1 group-hover:text-green-600 transition-colors">
                                 <?= htmlspecialchars($exam->subject) ?></h4>
                             <p class="text-sm text-gray-400 font-medium mb-6"><?= htmlspecialchars($exam->exam_type) ?> •
                                 <?= htmlspecialchars($exam->paper_type) ?></p>
@@ -65,20 +82,27 @@ $exams = $stmt->fetchAll(PDO::FETCH_OBJ);
                             <div class="grid grid-cols-2 gap-4 mb-8">
                                 <div class="bg-gray-50/50 p-3 rounded-2xl border border-gray-100/50">
                                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Questions</p>
-                                    <p class="text-sm font-black text-gray-700"><?= $exam->num_quest ?> Items</p>
+                                    <p class="text-sm font-semibold text-gray-700"><?= $exam->num_quest ?> Items</p>
                                 </div>
                                 <div class="bg-gray-50/50 p-3 rounded-2xl border border-gray-100/50">
                                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter mb-1">Duration</p>
-                                    <p class="text-sm font-black text-gray-700"><?= $exam->time_allowed ?> Mins</p>
+                                    <p class="text-sm font-semibold text-gray-700"><?= $exam->time_allowed ?> Mins</p>
                                 </div>
                             </div>
         
-                            <button
-                                onclick="<?= $isTaken ? "viewResult({$exam->id})" : "confirmStartExam({$exam->id}, '" . addslashes($exam->subject) . "', {$exam->num_quest}, {$exam->time_allowed})" ?>"
-                                class="w-full py-4 rounded-2xl font-bold text-sm transition-all duration-300 shadow-lg cursor-pointer
-                                    <?= $isTaken ? 'bg-white text-green-600 border-2 border-green-600 hover:bg-green-50' : 'bg-green-600 text-white hover:bg-green-700 hover:shadow-green-200' ?>">
-                                <?= $isTaken ? 'View Result' : 'Start Examination' ?>
-                            </button>
+                            <?php if ($isExpired && !$isTaken): ?>
+                                <button disabled
+                                    class="w-full py-4 rounded-2xl font-bold text-sm transition-all duration-300 shadow-lg bg-green-600 text-white opacity-60 cursor-not-allowed">
+                                    Expired
+                                </button>
+                            <?php else: ?>
+                                <button
+                                    onclick="<?= $isTaken ? "viewResult({$exam->id})" : "confirmStartExam({$exam->id}, '" . addslashes($exam->subject) . "', {$exam->num_quest}, {$exam->time_allowed})" ?>"
+                                    class="w-full py-4 rounded-2xl font-bold text-sm transition-all duration-300 shadow-lg cursor-pointer
+                                        <?= $isTaken ? 'bg-white text-green-600 border-2 border-green-600 hover:bg-green-50' : 'bg-green-600 text-white hover:bg-green-700 hover:shadow-green-200' ?>">
+                                    <?= $isTaken ? 'View Result' : 'Start Examination' ?>
+                                </button>
+                            <?php endif; ?>
                         </div>
                     </div>
                 <?php endforeach; ?>
@@ -116,7 +140,7 @@ $exams = $stmt->fetchAll(PDO::FETCH_OBJ);
                         <i class="bx bx-info-circle text-3xl"></i>
                     </div>
                     <div>
-                        <h3 class="text-xl font-black text-gray-800 leading-tight" id="modalExamSubject">Examination</h3>
+                        <h3 class="text-xl font-semibold text-gray-800 leading-tight" id="modalExamSubject">Examination</h3>
                         <p class="text-xs text-gray-400 font-medium mt-0.5">Read these instructions before you begin</p>
                     </div>
                 </div>
@@ -161,11 +185,11 @@ $exams = $stmt->fetchAll(PDO::FETCH_OBJ);
                 <!-- Action Buttons -->
                 <div class="px-8 pb-8 grid grid-cols-2 gap-3">
                     <button onclick="closeInstruction()"
-                        class="w-full py-4 bg-gray-100 text-gray-600 rounded-2xl font-black text-sm hover:bg-gray-200 transition-all cursor-pointer">
+                        class="w-full py-4 bg-gray-100 text-gray-600 rounded-2xl font-semibold text-sm hover:bg-gray-200 transition-all cursor-pointer">
                         Not Now
             </button>
             <button id="startBtn"
-                class="w-full py-4 bg-green-600 text-white rounded-2xl font-black text-sm hover:bg-green-700 shadow-lg shadow-green-100 transition-all cursor-pointer flex items-center justify-center gap-2">
+                class="w-full py-4 bg-green-600 text-white rounded-2xl font-semibold text-sm hover:bg-green-700 shadow-lg shadow-green-100 transition-all cursor-pointer flex items-center justify-center gap-2">
                 <i class="bx bx-play-circle text-lg"></i> Begin Exam
             </button>
         </div>
@@ -191,7 +215,7 @@ function closeInstruction() {
 function startExam(id) {
     $('#mainContent').fadeOut(300, function() {
         $.ajax({
-            url: '/school_app/student/pages/take_exam_interface.php',
+            url: BASE_URL + 'student/pages/take_exam_interface.php',
             type: 'POST',
             data: { exam_id: id },
             success: function(response) {
@@ -208,7 +232,7 @@ function startExam(id) {
 function viewResult(id) {
     $('#mainContent').fadeOut(300, function() {
         $.ajax({
-            url: '/school_app/student/pages/exam_result_view.php',
+            url: BASE_URL + 'student/pages/exam_result_view.php',
             type: 'POST',
             data: { exam_id: id },
             success: function(response) {

@@ -2,8 +2,9 @@
 session_start();
 header('Content-Type: application/json');
 require '../../connections/db.php';
+require_once '../../connections/functions.php';
 
-if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin') {
+if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], ['admin', 'super'])) {
     echo json_encode(["status" => "error", "message" => "Unauthorized"]);
     exit;
 }
